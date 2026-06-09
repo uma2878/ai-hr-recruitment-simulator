@@ -1,7 +1,18 @@
 function Navbar() {
   return (
-    <div>
-      <h2>AI HR Recruitment Simulator</h2>
+    <div
+      style={{
+        height: "60px",
+        backgroundColor: "#ffffff",
+        borderBottom: "1px solid #ddd",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontSize: "24px",
+        fontWeight: "bold",
+      }}
+    >
+      AI HR Recruitment Simulator
     </div>
   );
 }
