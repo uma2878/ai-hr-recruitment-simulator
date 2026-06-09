@@ -3,8 +3,8 @@ function Navbar() {
     <div
       style={{
         height: "60px",
-        backgroundColor: "#ffffff",
-        borderBottom: "1px solid #ddd",
+        backgroundColor: "#1e293b",
+        color: "white",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

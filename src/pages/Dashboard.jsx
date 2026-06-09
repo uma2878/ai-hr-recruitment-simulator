@@ -1,7 +1,23 @@
 function Dashboard() {
   return (
     <div style={{ padding: "30px" }}>
-      <h1>AI HR Recruitment Simulator</h1>
+      <h1
+  style={{
+    fontSize: "42px",
+    marginBottom: "10px",
+  }}
+>
+  Dashboard
+</h1>
+
+<p
+  style={{
+    color: "black",
+    marginBottom: "30px",
+  }}
+>
+  Welcome to the AI HR Recruitment Simulator
+</p>
 
       <div style={{
         display: "flex",
