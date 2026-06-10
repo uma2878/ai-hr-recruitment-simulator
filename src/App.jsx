@@ -1,22 +1,7 @@
-import Navbar from "./components/Navbar";
-import Sidebar from "./components/Sidebar";
-import Dashboard from "./pages/Dashboard";
-import "./App.css";
+import RoleSelection from "./pages/RoleSelection";
 
 function App() {
-  return (
-    <div className="app">
-      <Navbar />
-
-      <div className="main-layout">
-        <Sidebar />
-
-        <div className="content">
-          <Dashboard />
-        </div>
-      </div>
-    </div>
-  );
+  return <RoleSelection />;
 }
 
 export default App;
