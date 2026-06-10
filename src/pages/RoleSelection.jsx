@@ -1,5 +1,7 @@
+import { useNavigate } from "react-router-dom";
 import "./RoleSelection.css";
 function RoleSelection() {
+  const navigate = useNavigate();
   return (
     <div
       style={{
@@ -48,6 +50,7 @@ function RoleSelection() {
         <button
   className="role-btn"
   style={{ backgroundColor: "#1e293b" }}
+  onClick={() => navigate("/admin-login")}
 >
   <div style={{ fontSize: "40px" }}>👨‍💼</div>
   <div>Admin</div>
@@ -56,6 +59,7 @@ function RoleSelection() {
 <button
   className="role-btn"
   style={{ backgroundColor: "#2563eb" }}
+  onClick={() => navigate("/candidate-login")}
 >
   <div style={{ fontSize: "40px" }}>👨‍🎓</div>
   <div>Candidate</div>
