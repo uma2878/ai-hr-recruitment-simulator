@@ -88,6 +88,55 @@ function Dashboard() {
               <h3>AI Recommendations</h3>
               <p>15</p>
             </div>
+          <h2 style={{ marginTop: "40px" }}>📌 Recent Activity</h2>
+
+<div
+  style={{
+    backgroundColor: "white",
+    padding: "20px",
+    borderRadius: "10px",
+    border: "1px solid #ddd",
+    marginTop: "15px",
+  }}
+>
+  <p>✅ Rohith Sharma shortlisted for React Developer</p>
+  <p>✅ Vaishnavi selected for AI Engineer</p>
+  <p>📄 5 new resumes uploaded today</p>
+  <p>🎤 3 interviews completed</p>
+</div>  
+<h4 style={{ marginTop: "40px" }}>📊 Hiring Progress</h4>
+
+<div
+  style={{
+    backgroundColor: "white",
+    padding: "20px",
+    borderRadius: "10px",
+    border: "1px solid #ddd",
+    marginTop: "15px",
+  }}
+>
+  <p>Total Applications: 120</p>
+
+  <div style={{
+    width: "100%",
+    backgroundColor: "#e5e7eb",
+    borderRadius: "10px",
+    overflow: "hidden",
+    marginTop: "10px",
+  }}>
+    <div
+      style={{
+        width: "75%",
+        backgroundColor: "#2563eb",
+        color: "white",
+        padding: "8px",
+        textAlign: "center",
+      }}
+    >
+      75% Hiring Progress
+    </div>
+  </div>
+</div>
           </div>
         </div>
       </div>

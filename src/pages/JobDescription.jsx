@@ -124,7 +124,7 @@ function JobDescription() {
                 style={saveBtn}
               >
                 Save Job
-              </button>
+               </button>
 
               <button
                 onClick={handleClear}
