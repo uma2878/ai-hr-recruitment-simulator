@@ -2,49 +2,85 @@ import { useState } from "react";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
-function JobDescription() {
-  const [jobTitle, setJobTitle] = useState("");
-  const [skills, setSkills] = useState("");
-  const [experience, setExperience] = useState("");
-  const [description, setDescription] = useState("");
+function ViewResumes() {
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const [jobs, setJobs] = useState([]);
+  const resumes = [
+    {
+      id: 1,
+      name: "Rohith Sharma",
+      file: "Rohith_Resume.pdf",
+      date: "10-Jun-2026",
+      status: "Reviewed",
+    },
+    {
+      id: 2,
+      name: "Vaishnavi",
+      file: "Vaishnavi_Resume.pdf",
+      date: "11-Jun-2026",
+      status: "Reviewed",
+    },
+    {
+      id: 3,
+      name: "Akshaya",
+      file: "Akshaya_Resume.pdf",
+      date: "11-Jun-2026",
+      status: "Pending",
+    },
+    {
+      id: 4,
+      name: "Sai Kumar",
+      file: "SaiKumar_Resume.pdf",
+      date: "12-Jun-2026",
+      status: "Reviewed",
+    },
+    {
+      id: 5,
+      name: "Anil Siva Kumar",
+      file: "Anil_Resume.pdf",
+      date: "12-Jun-2026",
+      status: "Pending",
+    },
+    {
+      id: 6,
+      name: "Navya",
+      file: "Navya_Resume.pdf",
+      date: "13-Jun-2026",
+      status: "Reviewed",
+    },
+    {
+      id: 7,
+      name: "Deekshitha",
+      file: "Deekshitha_Resume.pdf",
+      date: "13-Jun-2026",
+      status: "Pending",
+    },
+    {
+      id: 8,
+      name: "Praveen",
+      file: "Praveen_Resume.pdf",
+      date: "14-Jun-2026",
+      status: "Reviewed",
+    },
+    {
+      id: 9,
+      name: "Harsha",
+      file: "Harsha_Resume.pdf",
+      date: "14-Jun-2026",
+      status: "Reviewed",
+    },
+    {
+      id: 10,
+      name: "Mahesh",
+      file: "Mahesh_Resume.pdf",
+      date: "15-Jun-2026",
+      status: "Pending",
+    },
+  ];
 
-  const handleSave = () => {
-    if (
-      !jobTitle ||
-      !skills ||
-      !experience ||
-      !description
-    ) {
-      alert("Please fill all fields");
-      return;
-    }
-
-    const newJob = {
-      id: jobs.length + 1,
-      title: jobTitle,
-      skills,
-      experience,
-      description,
-    };
-
-    setJobs([...jobs, newJob]);
-
-    setJobTitle("");
-    setSkills("");
-    setExperience("");
-    setDescription("");
-
-    alert("Job Saved Successfully!");
-  };
-
-  const handleClear = () => {
-    setJobTitle("");
-    setSkills("");
-    setExperience("");
-    setDescription("");
-  };
+  const filteredResumes = resumes.filter((resume) =>
+    resume.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <>
@@ -54,8 +90,8 @@ function JobDescription() {
         <Sidebar />
 
         <div style={{ padding: "30px", flex: 1 }}>
-          <h1>📝 Job Description</h1>
-          <p>Create and manage job requirements.</p>
+          <h1>📄 View Resumes</h1>
+          <p>Manage uploaded candidate resumes.</p>
 
           {/* Summary Cards */}
           <div
@@ -63,116 +99,120 @@ function JobDescription() {
               display: "flex",
               gap: "20px",
               marginTop: "20px",
-              marginBottom: "30px",
+              marginBottom: "20px",
             }}
           >
-            <div style={cardStyle}>
-              <h3>Total Jobs</h3>
-              <p>{jobs.length}</p>
+            <div style={summaryCard}>
+              <h3>Total Resumes</h3>
+              <p>{resumes.length}</p>
             </div>
 
-            <div style={cardStyle}>
-              <h3>Active Jobs</h3>
-              <p>{jobs.length}</p>
+            <div style={summaryCard}>
+              <h3>Reviewed</h3>
+              <p>
+                {
+                  resumes.filter(
+                    (resume) => resume.status === "Reviewed"
+                  ).length
+                }
+              </p>
             </div>
 
-            <div style={cardStyle}>
-              <h3>Closed Jobs</h3>
-              <p>0</p>
-            </div>
-          </div>
-
-          {/* Form */}
-          <div style={formContainer}>
-            <h2>Add New Job</h2>
-
-            <input
-              type="text"
-              placeholder="Job Title"
-              value={jobTitle}
-              onChange={(e) => setJobTitle(e.target.value)}
-              style={inputStyle}
-            />
-
-            <input
-              type="text"
-              placeholder="Required Skills"
-              value={skills}
-              onChange={(e) => setSkills(e.target.value)}
-              style={inputStyle}
-            />
-
-            <input
-              type="text"
-              placeholder="Experience Required"
-              value={experience}
-              onChange={(e) => setExperience(e.target.value)}
-              style={inputStyle}
-            />
-
-            <textarea
-              placeholder="Job Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows="5"
-              style={textareaStyle}
-            />
-
-            <div style={{ marginTop: "15px" }}>
-              <button
-                onClick={handleSave}
-                style={saveBtn}
-              >
-                Save Job
-              </button>
-
-              <button
-                onClick={handleClear}
-                style={clearBtn}
-              >
-                Clear
-              </button>
+            <div style={summaryCard}>
+              <h3>Pending</h3>
+              <p>
+                {
+                  resumes.filter(
+                    (resume) => resume.status === "Pending"
+                  ).length
+                }
+              </p>
             </div>
           </div>
 
-          {/* Jobs Table */}
-          <div style={{ marginTop: "40px" }}>
-            <h2>Saved Jobs</h2>
+          {/* Search */}
+          <input
+            type="text"
+            placeholder="🔍 Search Resume..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{
+              width: "300px",
+              padding: "10px",
+              borderRadius: "8px",
+              border: "1px solid #ccc",
+              marginBottom: "25px",
+            }}
+          />
 
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                backgroundColor: "white",
-              }}
-            >
-              <thead>
-                <tr
+          {/* Resume Cards */}
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "20px",
+            }}
+          >
+            {filteredResumes.map((resume) => (
+              <div key={resume.id} style={resumeCard}>
+                <h2>👤 {resume.name}</h2>
+
+                <p style={{ marginBottom: "10px" }}>
+                  <strong>File:</strong> {resume.file}
+                </p>
+
+                <p style={{ marginBottom: "10px" }}>
+                  <strong>Uploaded:</strong> {resume.date}
+                </p>
+
+                <p style={{ marginBottom: "15px" }}>
+                  <strong>Status:</strong>{" "}
+                  <span
+                    style={{
+                      backgroundColor:
+                        resume.status === "Reviewed"
+                          ? "green"
+                          : "orange",
+                      color: "white",
+                      padding: "5px 10px",
+                      borderRadius: "12px",
+                    }}
+                  >
+                    {resume.status}
+                  </span>
+                </p>
+
+                <div
                   style={{
-                    backgroundColor: "#1e293b",
-                    color: "white",
+                    display: "flex",
+                    gap: "10px",
+                    marginTop: "15px",
                   }}
                 >
-                  <th style={tableHeader}>ID</th>
-                  <th style={tableHeader}>Job Title</th>
-                  <th style={tableHeader}>Skills</th>
-                  <th style={tableHeader}>Experience</th>
-                </tr>
-              </thead>
+                  <button
+                    style={viewBtn}
+                    onClick={() =>
+                      alert(
+                        `Viewing Resume of ${resume.name}`
+                      )
+                    }
+                  >
+                    View
+                  </button>
 
-              <tbody>
-                {jobs.map((job) => (
-                  <tr key={job.id}>
-                    <td style={tableCell}>{job.id}</td>
-                    <td style={tableCell}>{job.title}</td>
-                    <td style={tableCell}>{job.skills}</td>
-                    <td style={tableCell}>
-                      {job.experience}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                  <button
+                    style={downloadBtn}
+                    onClick={() =>
+                      alert(
+                        `Downloading ${resume.file}`
+                      )
+                    }
+                  >
+                    Download
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -180,65 +220,41 @@ function JobDescription() {
   );
 }
 
-const cardStyle = {
-  border: "1px solid #ddd",
-  borderRadius: "10px",
-  padding: "15px",
+const summaryCard = {
   width: "180px",
+  padding: "15px",
+  borderRadius: "10px",
   backgroundColor: "white",
+  border: "1px solid #ddd",
   textAlign: "center",
 };
 
-const formContainer = {
+const resumeCard = {
+  width: "320px",
   backgroundColor: "white",
+  border: "1px solid #ddd",
+  borderRadius: "12px",
   padding: "25px",
-  borderRadius: "10px",
-  boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+  boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
+  lineHeight: "1.8",
 };
 
-const inputStyle = {
-  width: "100%",
-  padding: "12px",
-  marginTop: "10px",
-  borderRadius: "8px",
-  border: "1px solid #ccc",
-};
-
-const textareaStyle = {
-  width: "100%",
-  padding: "12px",
-  marginTop: "10px",
-  borderRadius: "8px",
-  border: "1px solid #ccc",
-};
-
-const saveBtn = {
-  padding: "10px 20px",
+const viewBtn = {
+  padding: "8px 15px",
+  border: "none",
+  borderRadius: "6px",
   backgroundColor: "#2563eb",
   color: "white",
-  border: "none",
-  borderRadius: "6px",
   cursor: "pointer",
-  marginRight: "10px",
 };
 
-const clearBtn = {
-  padding: "10px 20px",
-  backgroundColor: "#dc2626",
+const downloadBtn = {
+  padding: "8px 15px",
+  border: "none",
+  borderRadius: "6px",
+  backgroundColor: "#16a34a",
   color: "white",
-  border: "none",
-  borderRadius: "6px",
   cursor: "pointer",
 };
 
-const tableHeader = {
-  padding: "12px",
-  border: "1px solid #ddd",
-};
-
-const tableCell = {
-  padding: "12px",
-  border: "1px solid #ddd",
-};
-
-export default JobDescription;
+export default ViewResumes;
