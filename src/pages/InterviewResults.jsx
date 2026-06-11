@@ -1,7 +1,7 @@
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
-function JobDescription() {
+function InterviewResults() {
   return (
     <>
       <Navbar />
@@ -10,12 +10,12 @@ function JobDescription() {
         <Sidebar />
 
         <div style={{ padding: "30px", flex: 1 }}>
-          <h1>📝 Job Description</h1>
-          <p>Create and manage job descriptions here.</p>
+          <h1>🎤 Interview Results</h1>
+          <p>Interview results will appear here.</p>
         </div>
       </div>
     </>
   );
 }
 
-export default JobDescription;
+export default InterviewResults;

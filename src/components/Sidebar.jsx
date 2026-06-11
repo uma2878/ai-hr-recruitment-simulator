@@ -1,4 +1,8 @@
+import { useNavigate } from "react-router-dom";
+
 function Sidebar() {
+  const navigate = useNavigate();
+
   return (
     <div
       style={{
@@ -16,15 +20,41 @@ function Sidebar() {
           margin: "0",
         }}
       >
-        <li style={itemStyle}>📊 Dashboard</li>
-        <li style={itemStyle}>📋 Candidate List</li>
-        <li style={itemStyle}>📄 View Resumes</li>
-        <li style={itemStyle}>📝 Job Description</li>
-        <li style={itemStyle}>🎯 Match Results</li>
-        <li style={itemStyle}>⭐ AI Recommendations</li>
-        <li style={itemStyle}>🎤 Interview Results</li>
-        <li style={itemStyle}>📈 Analytics</li>
-        <li style={itemStyle}>⚙️ Settings</li>
+        <li style={itemStyle} onClick={() => navigate("/dashboard")}>
+          📊 Dashboard
+        </li>
+
+        <li style={itemStyle} onClick={() => navigate("/candidate-list")}>
+          📋 Candidate List
+        </li>
+
+        <li style={itemStyle} onClick={() => navigate("/view-resumes")}>
+          📄 View Resumes
+        </li>
+
+        <li style={itemStyle} onClick={() => navigate("/job-description")}>
+          📝 Job Description
+        </li>
+
+        <li style={itemStyle} onClick={() => navigate("/match-results")}>
+          🎯 Match Results
+        </li>
+
+        <li style={itemStyle} onClick={() => navigate("/ai-recommendations")}>
+          ⭐ AI Recommendations
+        </li>
+
+        <li style={itemStyle} onClick={() => navigate("/interview-results")}>
+          🎤 Interview Results
+        </li>
+
+        <li style={itemStyle} onClick={() => navigate("/analytics")}>
+          📈 Analytics
+        </li>
+
+        <li style={itemStyle} onClick={() => navigate("/settings")}>
+          ⚙️ Settings
+        </li>
       </ul>
     </div>
   );
