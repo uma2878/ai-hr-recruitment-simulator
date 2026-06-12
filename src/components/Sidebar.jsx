@@ -1,12 +1,26 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 function Sidebar() {
   const navigate = useNavigate();
+  const location = useLocation();
+  console.log("Current Path:", location.pathname);
+
+  const menuItems = [
+    { name: "📊 Dashboard", path: "/dashboard" },
+    { name: "📋 Candidate List", path: "/candidate-list" },
+    { name: "📄 View Resumes", path: "/view-resumes" },
+    { name: "📝 Job Description", path: "/job-description" },
+    { name: "🎯 Match Results", path: "/match-results" },
+    { name: "⭐ AI Recommendations", path: "/ai-recommendations" },
+    { name: "🎤 Interview Results", path: "/interview-results" },
+    { name: "📈 Analytics", path: "/analytics" },
+    { name: "⚙️ Settings", path: "/settings" },
+  ];
 
   return (
     <div
       style={{
-        width: "220px",
+        width: "240px",
         minHeight: "calc(100vh - 70px)",
         backgroundColor: "#0f172a",
         color: "white",
@@ -16,54 +30,43 @@ function Sidebar() {
       <ul
         style={{
           listStyle: "none",
-          padding: "0",
-          margin: "0",
+          padding: 0,
+          margin: 0,
         }}
       >
-        <li style={itemStyle} onClick={() => navigate("/dashboard")}>
-          📊 Dashboard
-        </li>
+        {menuItems.map((item) => (
+          <li
+            key={item.path}
+            onClick={() => navigate(item.path)}
+            style={{
+              padding: "15px 20px",
+              cursor: "pointer",
+              borderBottom: "1px solid #1e293b",
 
-        <li style={itemStyle} onClick={() => navigate("/candidate-list")}>
-          📋 Candidate List
-        </li>
+              backgroundColor:
+                location.pathname === item.path
+                  ? "teal"
+                  : "transparent",
 
-        <li style={itemStyle} onClick={() => navigate("/view-resumes")}>
-          📄 View Resumes
-        </li>
+              borderLeft:
+                location.pathname === item.path
+                  ? "8px solid navy blue"
+                  : "8px solid transparent",
 
-        <li style={itemStyle} onClick={() => navigate("/job-description")}>
-          📝 Job Description
-        </li>
+              fontWeight:
+                location.pathname === item.path
+                  ? "bold"
+                  : "normal",
 
-        <li style={itemStyle} onClick={() => navigate("/match-results")}>
-          🎯 Match Results
-        </li>
-
-        <li style={itemStyle} onClick={() => navigate("/ai-recommendations")}>
-          ⭐ AI Recommendations
-        </li>
-
-        <li style={itemStyle} onClick={() => navigate("/interview-results")}>
-          🎤 Interview Results
-        </li>
-
-        <li style={itemStyle} onClick={() => navigate("/analytics")}>
-          📈 Analytics
-        </li>
-
-        <li style={itemStyle} onClick={() => navigate("/settings")}>
-          ⚙️ Settings
-        </li>
+              transition: "0.3s",
+            }}
+          >
+            {item.name}
+          </li>
+        ))}
       </ul>
     </div>
   );
 }
-
-const itemStyle = {
-  padding: "15px 20px",
-  cursor: "pointer",
-  borderBottom: "1px solid #1e293b",
-};
 
 export default Sidebar;

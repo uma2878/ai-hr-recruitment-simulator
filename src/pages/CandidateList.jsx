@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
 function CandidateList() {
+  const location = useLocation();
+
   const [searchTerm, setSearchTerm] = useState("");
 
   const [candidates, setCandidates] = useState([
@@ -88,22 +91,34 @@ function CandidateList() {
     },
   ]);
 
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const searchValue = params.get("search") || "";
+    setSearchTerm(searchValue);
+  }, [location.search]);
+
   const handleDelete = (id, name) => {
     const confirmDelete = window.confirm(
       `Are you sure you want to delete ${name}?`
     );
 
     if (confirmDelete) {
-      setCandidates(
-        candidates.filter((candidate) => candidate.id !== id)
+      setCandidates((prevCandidates) =>
+        prevCandidates.filter(
+          (candidate) => candidate.id !== id
+        )
       );
     }
   };
 
   const filteredCandidates = candidates.filter(
     (candidate) =>
-      candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      candidate.email.toLowerCase().includes(searchTerm.toLowerCase())
+      candidate.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase()) ||
+      candidate.email
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -113,14 +128,23 @@ function CandidateList() {
       <div style={{ display: "flex" }}>
         <Sidebar />
 
-        <div style={{ padding: "30px", flex: 1 }}>
+        <div
+          style={{
+            padding: "30px",
+            flex: 1,
+            backgroundColor: "#f8fafc",
+          }}
+        >
           <h1>📋 Candidate List</h1>
+
+          {/* Summary Cards */}
 
           <div
             style={{
               display: "flex",
               gap: "20px",
-              marginBottom: "20px",
+              marginBottom: "25px",
+              flexWrap: "wrap",
             }}
           >
             <div style={cardStyle}>
@@ -133,7 +157,7 @@ function CandidateList() {
               <p>
                 {
                   candidates.filter(
-                    (candidate) => candidate.status === "Selected"
+                    (c) => c.status === "Selected"
                   ).length
                 }
               </p>
@@ -144,7 +168,7 @@ function CandidateList() {
               <p>
                 {
                   candidates.filter(
-                    (candidate) => candidate.status === "Shortlisted"
+                    (c) => c.status === "Shortlisted"
                   ).length
                 }
               </p>
@@ -155,18 +179,22 @@ function CandidateList() {
               <p>
                 {
                   candidates.filter(
-                    (candidate) => candidate.status === "Pending"
+                    (c) => c.status === "Pending"
                   ).length
                 }
               </p>
             </div>
           </div>
 
+          {/* Search Box */}
+
           <input
             type="text"
             placeholder="🔍 Search Candidate..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) =>
+              setSearchTerm(e.target.value)
+            }
             style={{
               padding: "10px",
               width: "300px",
@@ -176,6 +204,8 @@ function CandidateList() {
             }}
           />
 
+          {/* Table */}
+
           <table
             style={{
               width: "100%",
@@ -184,7 +214,12 @@ function CandidateList() {
             }}
           >
             <thead>
-              <tr style={{ backgroundColor: "#1e293b", color: "white" }}>
+              <tr
+                style={{
+                  backgroundColor: "#1e293b",
+                  color: "white",
+                }}
+              >
                 <th style={tableHeader}>ID</th>
                 <th style={tableHeader}>Name</th>
                 <th style={tableHeader}>Email</th>
@@ -198,11 +233,25 @@ function CandidateList() {
             <tbody>
               {filteredCandidates.map((candidate) => (
                 <tr key={candidate.id}>
-                  <td style={tableCell}>{candidate.id}</td>
-                  <td style={tableCell}>{candidate.name}</td>
-                  <td style={tableCell}>{candidate.email}</td>
-                  <td style={tableCell}>{candidate.skills}</td>
-                  <td style={tableCell}>{candidate.score}</td>
+                  <td style={tableCell}>
+                    {candidate.id}
+                  </td>
+
+                  <td style={tableCell}>
+                    {candidate.name}
+                  </td>
+
+                  <td style={tableCell}>
+                    {candidate.email}
+                  </td>
+
+                  <td style={tableCell}>
+                    {candidate.skills}
+                  </td>
+
+                  <td style={tableCell}>
+                    {candidate.score}
+                  </td>
 
                   <td style={tableCell}>
                     <span
@@ -213,9 +262,10 @@ function CandidateList() {
                         backgroundColor:
                           candidate.status === "Selected"
                             ? "green"
-                            : candidate.status === "Shortlisted"
+                            : candidate.status ===
+                              "Shortlisted"
                             ? "orange"
-                            : "blue",
+                            : "#2563eb",
                       }}
                     >
                       {candidate.status}
@@ -233,31 +283,19 @@ Match Score: ${candidate.score}
 Status: ${candidate.status}`
                         )
                       }
-                      style={{
-                        padding: "5px 10px",
-                        marginRight: "8px",
-                        border: "none",
-                        borderRadius: "5px",
-                        cursor: "pointer",
-                        backgroundColor: "#2563eb",
-                        color: "white",
-                      }}
+                      style={viewButton}
                     >
                       View
                     </button>
 
                     <button
                       onClick={() =>
-                        handleDelete(candidate.id, candidate.name)
+                        handleDelete(
+                          candidate.id,
+                          candidate.name
+                        )
                       }
-                      style={{
-                        padding: "5px 10px",
-                        border: "none",
-                        borderRadius: "5px",
-                        cursor: "pointer",
-                        backgroundColor: "#dc2626",
-                        color: "white",
-                      }}
+                      style={deleteButton}
                     >
                       Delete
                     </button>
@@ -266,6 +304,17 @@ Status: ${candidate.status}`
               ))}
             </tbody>
           </table>
+
+          {filteredCandidates.length === 0 && (
+            <p
+              style={{
+                marginTop: "20px",
+                color: "#666",
+              }}
+            >
+              No candidates found.
+            </p>
+          )}
         </div>
       </div>
     </>
@@ -289,6 +338,25 @@ const cardStyle = {
   width: "180px",
   backgroundColor: "white",
   textAlign: "center",
+};
+
+const viewButton = {
+  padding: "5px 10px",
+  marginRight: "8px",
+  border: "none",
+  borderRadius: "5px",
+  cursor: "pointer",
+  backgroundColor: "#2563eb",
+  color: "white",
+};
+
+const deleteButton = {
+  padding: "5px 10px",
+  border: "none",
+  borderRadius: "5px",
+  cursor: "pointer",
+  backgroundColor: "#dc2626",
+  color: "white",
 };
 
 export default CandidateList;

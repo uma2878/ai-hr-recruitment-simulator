@@ -1,7 +1,20 @@
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 function Navbar() {
   const navigate = useNavigate();
+
+  const [search, setSearch] = useState("");
+
+  const handleLogout = () => {
+    const confirmLogout = window.confirm(
+      "Are you sure you want to logout?"
+    );
+
+    if (confirmLogout) {
+      navigate("/admin-login");
+    }
+  };
 
   return (
     <div
@@ -17,13 +30,22 @@ function Navbar() {
     >
       {/* Project Name */}
 
-      <h2>AI HR Recruitment Simulator</h2>
+      <h2>XTRAGRAD AI Recruitment Simulator</h2>
 
       {/* Search Bar */}
 
       <input
         type="text"
-        placeholder="🔍 Search candidate..."
+        placeholder="🔍 Search Candidate..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            navigate(
+              `/candidate-list?search=${search}`
+            );
+          }
+        }}
         style={{
           padding: "8px",
           width: "250px",
@@ -41,7 +63,7 @@ function Navbar() {
           gap: "20px",
         }}
       >
-        {/* Notification */}
+        {/* Notifications */}
 
         <button
           onClick={() =>
@@ -49,20 +71,16 @@ function Navbar() {
               "🔔 Notifications\n\n• 5 New Resumes Uploaded\n• 3 Interviews Completed\n• 2 Candidates Selected"
             )
           }
-          style={iconBtn}
+          style={iconButton}
         >
           🔔
         </button>
 
-        {/* Admin */}
+        {/* Admin Profile */}
 
         <button
-          onClick={() =>
-            alert(
-              "👤 Admin Profile\n\nName: Admin\nRole: HR Manager"
-            )
-          }
-          style={iconBtn}
+          onClick={() => navigate("/admin-profile")}
+          style={iconButton}
         >
           👤 Admin
         </button>
@@ -70,7 +88,7 @@ function Navbar() {
         {/* Logout */}
 
         <button
-          onClick={() => navigate("/admin-login")}
+          onClick={handleLogout}
           style={{
             backgroundColor: "#dc2626",
             color: "white",
@@ -87,10 +105,10 @@ function Navbar() {
   );
 }
 
-const iconBtn = {
+const iconButton = {
   background: "transparent",
-  color: "white",
   border: "none",
+  color: "white",
   cursor: "pointer",
   fontSize: "16px",
 };

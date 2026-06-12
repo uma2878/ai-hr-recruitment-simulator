@@ -6,6 +6,7 @@ import AIRecommendations from "./pages/AIRecommendations";
 import InterviewResults from "./pages/InterviewResults";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
+import AdminProfile from "./pages/AdminProfile";
 import { Routes, Route } from "react-router-dom";
 
 import RoleSelection from "./pages/RoleSelection";
@@ -30,6 +31,7 @@ function App() {
       <Route path="/interview-results" element={<InterviewResults />} />
       <Route path="/analytics" element={<Analytics />} />
       <Route path="/settings" element={<Settings />} />
+      <Route path="/admin-profile" element={<AdminProfile />} />
     </Routes>
   );
 }
