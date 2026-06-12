@@ -4,10 +4,10 @@ import Sidebar from "../components/Sidebar";
 
 function Settings() {
   const [companyName, setCompanyName] =
-    useState("ABC Technologies");
+    useState("XTRAGRAD Technologies Private Limited");
 
   const [email, setEmail] =
-    useState("hr@abctech.com");
+    useState("hr@xtragrad.com");
 
   const [phone, setPhone] =
     useState("9876543210");

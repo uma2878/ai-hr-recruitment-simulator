@@ -1,4 +1,8 @@
+import { useNavigate } from "react-router-dom";
+
 function Navbar() {
+  const navigate = useNavigate();
+
   return (
     <div
       style={{
@@ -6,51 +10,89 @@ function Navbar() {
         backgroundColor: "#1e293b",
         color: "white",
         display: "flex",
-        justifyContent: "space-between",
         alignItems: "center",
+        justifyContent: "space-between",
         padding: "0 20px",
-        boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
       }}
     >
-      {/* Logo & Title */}
-      <div
-        style={{
-          fontSize: "24px",
-          fontWeight: "bold",
-        }}
-      >
-        🤖 AI HR Recruitment Simulator
-      </div>
+      {/* Project Name */}
+
+      <h2>AI HR Recruitment Simulator</h2>
 
       {/* Search Bar */}
+
       <input
         type="text"
-        placeholder="Search candidates..."
+        placeholder="🔍 Search candidate..."
         style={{
-          padding: "8px 12px",
-          borderRadius: "8px",
-          border: "none",
+          padding: "8px",
           width: "250px",
+          borderRadius: "6px",
+          border: "none",
         }}
       />
 
-      {/* Right Section */}
+      {/* Right Side */}
+
       <div
         style={{
           display: "flex",
           alignItems: "center",
           gap: "20px",
-          fontSize: "20px",
         }}
       >
-        <span style={{ cursor: "pointer" }}>🔔</span>
-        <span style={{ cursor: "pointer" }}>👤 Admin</span>
-        <span style={{ cursor: "pointer", color: "#f87171" }}>
-          🚪 Logout
-        </span>
+        {/* Notification */}
+
+        <button
+          onClick={() =>
+            alert(
+              "🔔 Notifications\n\n• 5 New Resumes Uploaded\n• 3 Interviews Completed\n• 2 Candidates Selected"
+            )
+          }
+          style={iconBtn}
+        >
+          🔔
+        </button>
+
+        {/* Admin */}
+
+        <button
+          onClick={() =>
+            alert(
+              "👤 Admin Profile\n\nName: Admin\nRole: HR Manager"
+            )
+          }
+          style={iconBtn}
+        >
+          👤 Admin
+        </button>
+
+        {/* Logout */}
+
+        <button
+          onClick={() => navigate("/admin-login")}
+          style={{
+            backgroundColor: "#dc2626",
+            color: "white",
+            border: "none",
+            padding: "8px 15px",
+            borderRadius: "6px",
+            cursor: "pointer",
+          }}
+        >
+          Logout
+        </button>
       </div>
     </div>
   );
 }
+
+const iconBtn = {
+  background: "transparent",
+  color: "white",
+  border: "none",
+  cursor: "pointer",
+  fontSize: "16px",
+};
 
 export default Navbar;
