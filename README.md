@@ -1,32 +1,51 @@
 # AI HR Recruitment Simulator
 
 ## Project Overview
-An AI-powered recruitment platform that automates resume screening, candidate matching, interview assessment, and hiring recommendations.
+An AI-powered recruitment platform that automates resume screening, candidate matching, interview assessment, and AI-driven hiring recommendations.
 
 ## Frontend Tech Stack
 - React.js
 - Vite
 - JavaScript
-- CSS
+- CSS3
 
 ## Team Members
 - Uma Maheswara Rao Vedurupaka
 - Akshaya Adupa
 - Vaishnavi Ananthoju
 
-## Modules
-- Dashboard
-- Resume Upload
-- Job Description
-- Candidate Matching
-- Interview Results
-- HR Recommendation
+## Features
 
-## Setup
+### Admin Dashboard
+- Dashboard Analytics
+- Candidate List
+- Resume Management
+- Job Description Management
+- Match Results
+- AI Recommendations
+- Interview Results
+- Analytics
+- Settings
+
+### Candidate Dashboard
+- Profile Management
+- Resume Upload
+- AI Skill Analysis
+- Job Recommendations
+- Applications Tracking
+- Interview Status
+- AI Mock Interview
+- Skill Assessment
+- Settings
+
+## Installation
 
 ```bash
-git clone https://github.com/uma2878/ai-hr-recruitment-simulator.git
-cd ai-hr-recruitment-simulator
+git clone https://github.com/XTRAGRAD-AI/AI-HR-Recruitment-Simulator.git
+cd AI-HR-Recruitment-Simulator/frontend
 npm install
 npm run dev
 ```
+
+## Team
+Developed as part of the XTRAGRAD AI HR Recruitment Simulator Project.

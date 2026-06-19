@@ -20,7 +20,7 @@ function Sidebar() {
   return (
     <div
       style={{
-        width: "240px",
+        width: "250px",
         minHeight: "calc(100vh - 70px)",
         backgroundColor: "#0f172a",
         color: "white",

@@ -1,0 +1,459 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Poppins',sans-serif;
+}
+
+html,
+body,
+#root{
+  width:100%;
+  min-height:100%;
+  overflow-x:hidden;
+}
+
+body{
+  background:#f5f7fb;
+}
+
+/* ================= APP WRAPPER ================= */
+
+.dashboard-container{
+  display:flex;
+  min-height:100vh;
+  width:100%;
+}
+
+/* ================= SIDEBAR ================= */
+
+.sidebar{
+  width:270px;
+  min-width:260px;
+  height:100vh;
+  overflow-y: auto;
+  position:fixed;
+  top:0;
+  left:0;
+
+  background:linear-gradient(180deg,#0b2e78,#0a1f4d);
+  color:white;
+  padding:20px;
+
+  display:flex;
+  flex-direction:column;
+}
+
+.logo-section{
+  text-align:center;
+  margin-bottom:30px;
+}
+
+.logo-section h1{
+  font-size:24px;
+  margin-bottom:5px;
+}
+
+.logo-section p{
+  font-size:12px;
+  opacity:0.8;
+}
+
+/* ================= MENU ================= */
+
+.menu{
+  list-style:none;
+  margin-top:15px;
+}
+
+.menu li{
+  padding:14px;
+  margin-bottom:10px;
+  border-radius:10px;
+  cursor:pointer;
+  transition:0.3s;
+  font-size:14px;
+}
+
+.menu li:hover{
+  background:rgba(255,255,255,0.15);
+}
+
+.menu li.active{
+  background:#2563eb;
+  font-weight:600;
+}
+
+/* ================= MAIN CONTENT ================= */
+
+.main-content{
+  margin-left:260px;
+  flex:1;
+  min-width:0;
+  padding:35px;
+}
+
+/* ================= HEADER ================= */
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.welcome-section h1{
+  font-size:32px;
+  font-weight:600;
+}
+
+.welcome-section p{
+  margin-top:5px;
+  color:#6b7280;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-left: auto;
+}
+
+/* ================= SEARCH ================= */
+
+.search-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-input {
+  width: 320px;
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  outline: none;
+  font-size: 14px;
+}
+
+.search-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.search-btn:hover {
+  background: #1d4ed8;
+}
+
+/* ================= PROFILE ================= */
+
+.profile-section{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.avatar{
+  width:50px;
+  height:50px;
+  border-radius:50%;
+  background:#2563eb;
+  color:white;
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  font-size:20px;
+  font-weight:600;
+  overflow:hidden;
+}
+
+.avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.profile-section h4{
+  margin-bottom:4px;
+}
+
+.profile-section p{
+  font-size:12px;
+  color:#6b7280;
+}
+
+/* ================= CARDS ================= */
+
+.card{
+  background:white;
+  padding:22px;
+  border-radius:18px;
+  box-shadow:0 4px 15px rgba(0,0,0,0.05);
+}
+
+/* ================= TOP STATS ================= */
+
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:20px;
+  margin-bottom:25px;
+}
+
+.stat-card{
+  text-align:center;
+}
+
+.stat-card h2{
+  font-size:34px;
+  color:#2563eb;
+  margin-bottom:10px;
+}
+
+.stat-card p{
+  color:#6b7280;
+}
+
+/* ================= DASHBOARD ROW ================= */
+
+.dashboard-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  margin-bottom:25px;
+}
+
+/* ================= AI SCORE ================= */
+
+.skill-card{
+  text-align:center;
+}
+
+.score-circle{
+  width:140px;
+  height:140px;
+  border:8px solid #2563eb;
+  border-radius:50%;
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  margin:20px auto;
+}
+
+.score-circle span{
+  font-size:32px;
+  font-weight:700;
+  color:#2563eb;
+}
+
+/* ================= PROFILE COMPLETION ================= */
+
+.completion-card{
+  text-align:center;
+}
+
+.completion-card h1{
+  margin:15px 0;
+  color:#2563eb;
+}
+
+.completion-card ul{
+  list-style:none;
+  text-align:left;
+  max-width:250px;
+  margin:20px auto;
+}
+
+.completion-card li{
+  margin-bottom:10px;
+}
+
+/* ================= JOBS ================= */
+
+.jobs-section{
+  width:100%;
+}
+
+.jobs-title{
+  text-align:center;
+  margin-bottom:20px;
+}
+
+.job-card{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  padding:15px;
+  border:1px solid #eee;
+  border-radius:12px;
+
+  margin-top:12px;
+}
+
+.job-card h4{
+  margin-bottom:4px;
+}
+
+.job-card p{
+  color:#6b7280;
+  font-size:14px;
+}
+
+.job-right{
+  display:flex;
+  align-items:center;
+  gap:15px;
+}
+
+.job-right span{
+  color:green;
+  font-weight:600;
+}
+
+/* ================= BUTTONS ================= */
+
+button{
+  padding:8px 14px;
+  border:none;
+  border-radius:8px;
+  background:#2563eb;
+  color:white;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+button:hover{
+  background:#1d4ed8;
+}
+
+.logout-btn{
+  background:#ef4444;
+}
+
+.logout-btn:hover{
+  background:#dc2626;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width:1100px){
+
+  .stats-grid{
+    grid-template-columns:repeat(2,1fr);
+  }
+
+  .dashboard-row{
+    grid-template-columns:1fr;
+  }
+
+}
+
+@media (max-width:768px){
+
+  .sidebar{
+    position:relative;
+    width:100%;
+    min-width:100%;
+    height:auto;
+  }
+
+  .main-content{
+    margin-left:0;
+    width:100%;
+    padding:20px;
+  }
+
+  .header{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .header-right{
+    width:100%;
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .search-bar{
+    width:100%;
+  }
+
+  .stats-grid{
+    grid-template-columns:1fr;
+  }
+
+}
+.dark-mode {
+  background: #121212;
+  color: white;
+  min-height: 100vh;
+}
+
+.dark-mode .sidebar {
+  background: #1e1e1e;
+}
+
+.dark-mode .card,
+.dark-mode .job-card,
+.dark-mode .skill-card,
+.dark-mode .completion-card {
+  background: #242424;
+  color: white;
+}
+
+.dark-mode button {
+  background: #3b82f6;
+  color: white;
+}
+
+.dark-mode input,
+.dark-mode textarea,
+.dark-mode select {
+  background: #333;
+  color: white;
+  border: 1px solid #555;
+}
+
+.dark-mode .main-content {
+  background: #181818;
+}
+
+.dark-mode .menu li {
+  color: white;
+}
+
+.dark-mode .menu li.active {
+  background: #2563eb;
+}
+.search-results {
+  margin-top: 20px;
+}
+
+.search-results .job-card {
+  background: white;
+  padding: 15px;
+  margin-top: 10px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.search-results button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+}
