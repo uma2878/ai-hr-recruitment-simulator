@@ -1,25 +1,64 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
+import { API_BASE } from "../config/api";
 
 function Settings() {
-  const [companyName, setCompanyName] =
-    useState("XTRAGRAD Technologies Private Limited");
+  const [companyName, setCompanyName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [aiMatching, setAiMatching] = useState(true);
+  const [aiRecommendations, setAiRecommendations] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const [email, setEmail] =
-    useState("hr@xtragrad.com");
+  const getTokenAndId = () => {
+    const token = localStorage.getItem("token");
+    if (!token) return {};
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return { token, userId: payload.sub };
+  };
 
-  const [phone, setPhone] =
-    useState("9876543210");
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const { token, userId } = getTokenAndId();
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_BASE}/api/settings/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const p = data.preferences || {};
+          setCompanyName(p.company_name || "XTRAGRAD Technologies Private Limited");
+          setEmail(p.hr_email || "hr@xtragrad.com");
+          setPhone(p.phone || "9876543210");
+          setAiMatching(p.ai_matching !== undefined ? p.ai_matching : true);
+          setAiRecommendations(p.ai_recommendations !== undefined ? p.ai_recommendations : true);
+        }
+      } catch (e) {}
+    };
+    fetchSettings();
+  }, []);
 
-  const [aiMatching, setAiMatching] =
-    useState(true);
-
-  const [aiRecommendations, setAiRecommendations] =
-    useState(true);
-
-  const handleSave = () => {
-    alert("Settings Saved Successfully!");
+  const handleSave = async () => {
+    const { token, userId } = getTokenAndId();
+    if (!token) { alert("Not logged in"); return; }
+    setSaving(true);
+    setMessage("");
+    try {
+      const res = await fetch(`${API_BASE}/api/settings/${userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          preferences: { company_name: companyName, hr_email: email, phone, ai_matching: aiMatching, ai_recommendations: aiRecommendations },
+        }),
+      });
+      setMessage(res.ok ? "✅ Settings Saved Successfully!" : "❌ Save failed");
+    } catch (e) {
+      setMessage("❌ Server error");
+    }
+    setSaving(false);
   };
 
   const handleReset = () => {
@@ -106,18 +145,14 @@ function Settings() {
               </label>
             </div>
 
+            {message && <p style={{ marginTop: "10px", color: message.startsWith("✅") ? "green" : "red" }}>{message}</p>}
+
             <div style={{ marginTop: "30px" }}>
-              <button
-                onClick={handleSave}
-                style={saveBtn}
-              >
-                Save Settings
+              <button onClick={handleSave} style={saveBtn} disabled={saving}>
+                {saving ? "Saving..." : "Save Settings"}
               </button>
 
-              <button
-                onClick={handleReset}
-                style={resetBtn}
-              >
+              <button onClick={handleReset} style={resetBtn}>
                 Reset
               </button>
             </div>

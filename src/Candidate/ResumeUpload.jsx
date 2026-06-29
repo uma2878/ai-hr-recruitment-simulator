@@ -73,7 +73,7 @@ useEffect(() => {
     const formData = new FormData();
     formData.append("file", selectedFile);
     const response = await fetch(
-      `${API_BASE}/api/resumes/upload`,
+      `${API_BASE}/api/resume/upload`,
       {
         method: "POST",
         headers: {

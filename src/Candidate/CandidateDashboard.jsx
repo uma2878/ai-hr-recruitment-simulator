@@ -13,15 +13,27 @@ import SkillAssessment from "./SkillAssessment";
 import CandidateSettings from "./CandidateSettings";
 function CandidateDashboard() {
   const navigate = useNavigate();
-  const handleLogout = () => {
-  const confirmLogout = window.confirm(
-    "Are you sure you want to logout?"
-  );
+  const handleLogout = async () => {
+    const confirmLogout = window.confirm(
+      "Are you sure you want to logout?"
+    );
+    if (!confirmLogout) return;
 
-  if (confirmLogout) {
-    navigate("/candidate-login");
-  }
-};
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        await fetch(`${API_BASE}/api/auth/logout`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch (_) {}
+    }
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userEmail");
+    navigate("/");
+  };
 const [page, setPage] = useState("dashboard");
 
 const [profilePic, setProfilePic] = useState(null);

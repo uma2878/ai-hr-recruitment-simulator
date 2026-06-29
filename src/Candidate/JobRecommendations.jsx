@@ -1,122 +1,74 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { API_BASE } from "../config/api";
 import "./JobRecommendations.css";
 
 function JobRecommendations() {
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const jobs = [
-    {
-      id: 1,
-      title: "Frontend Developer",
-      company: "TCS",
-      location: "Hyderabad",
-      match: "95%"
-    },
-    {
-      id: 2,
-      title: "React Developer",
-      company: "Infosys",
-      location: "Bangalore",
-      match: "92%"
-    },
-    {
-      id: 3,
-      title: "Java Developer",
-      company: "Wipro",
-      location: "Chennai",
-      match: "90%"
-    },
-    {
-      id: 4,
-      title: "Software Engineer",
-      company: "Accenture",
-      location: "Pune",
-      match: "88%"
-    },
-    {
-      id: 5,
-      title: "UI Developer",
-      company: "Capgemini",
-      location: "Mumbai",
-      match: "86%"
-    },
-    {
-      id: 6,
-      title: "Full Stack Developer",
-      company: "Cognizant",
-      location: "Hyderabad",
-      match: "84%"
-    },
-    {
-      id: 7,
-      title: "Backend Developer",
-      company: "Tech Mahindra",
-      location: "Noida",
-      match: "82%"
-    },
-    {
-      id: 8,
-      title: "Software Trainee",
-      company: "HCL",
-      location: "Chennai",
-      match: "80%"
-    }
-  ];
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) { setError("Not logged in"); setLoading(false); return; }
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const userId = payload.sub;
 
-  const handleApply = (jobTitle) => {
-    alert(`Applied for ${jobTitle} successfully!`);
-  };
+        const res = await fetch(`${API_BASE}/api/jobs/recommendations/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.status === 401) { localStorage.removeItem("token"); window.location.href = "/"; return; }
+        if (!res.ok) throw new Error("Failed to load");
+        const data = await res.json();
+        setJobs(Array.isArray(data) ? data : []);
+      } catch (e) {
+        setError("Could not load job recommendations. Upload a resume first.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchJobs();
+  }, []);
+
+  if (loading) return <div className="jobs-container"><p>Loading recommendations...</p></div>;
+  if (error)   return <div className="jobs-container"><p style={{color:"#ef4444"}}>{error}</p></div>;
 
   return (
     <div className="jobs-container">
-
       <div className="jobs-header">
         <h2>💼 Job Recommendations</h2>
-        <p>
-          AI-generated jobs based on your profile and skills
-        </p>
+        <p>AI-generated jobs based on your profile and skills</p>
       </div>
 
-      <div className="jobs-grid">
+      {jobs.length === 0 ? (
+        <p>No recommendations yet. Upload your resume to get started.</p>
+      ) : (
+        <div className="jobs-grid">
+          {jobs.map((job) => (
+            <div className="job-card" key={job.job_id}>
+              <div className="job-top">
+                <h3>{job.title}</h3>
+                <span className="match-score">
+                  {Math.round((job.score || 0) * 100)}% Match
+                </span>
+              </div>
 
-        {jobs.map((job) => (
-
-          <div className="job-card" key={job.id}>
-
-            <div className="job-top">
-
-              <h3>{job.title}</h3>
-
-              <span className="match-score">
-                {job.match} Match
-              </span>
-
+              <div className="job-details">
+                {job.matched_skills?.length > 0 && (
+                  <p>✅ <strong>Matched:</strong> {job.matched_skills.join(", ")}</p>
+                )}
+                {job.missing_skills?.length > 0 && (
+                  <p>📌 <strong>Missing:</strong> {job.missing_skills.join(", ")}</p>
+                )}
+                {job.reasons?.length > 0 && (
+                  <p>💡 {job.reasons[0]}</p>
+                )}
+              </div>
             </div>
-
-            <div className="job-details">
-
-              <p>
-                🏢 <strong>{job.company}</strong>
-              </p>
-
-              <p>
-                📍 {job.location}
-              </p>
-
-            </div>
-
-            <button
-              className="apply-btn"
-              onClick={() => handleApply(job.title)}
-            >
-              Apply Now
-            </button>
-
-          </div>
-
-        ))}
-
-      </div>
-
+          ))}
+        </div>
+      )}
     </div>
   );
 }

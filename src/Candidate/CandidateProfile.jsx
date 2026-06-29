@@ -1,259 +1,126 @@
 import React, { useState, useEffect } from "react";
+import { API_BASE } from "../config/api";
 import "./CandidateProfile.css";
 
 function CandidateProfile({ setProfileName }) {
-  const initialState = {
-    fullName: "",
-    email: "",
-    phone: "",
-    dob: "",
-    gender: "",
-    location: "",
-    college: "",
-    degree: "",
-    branch: "",
-    cgpa: "",
-    graduationYear: "",
-    skills: "",
-    experience: "",
-    projects: "",
-    resume: ""
-  };
-
-  const [profile, setProfile] = useState(initialState);
-  const [resumeName, setResumeName] = useState("");
-  const [errors, setErrors] = useState({});
+  const [profile, setProfile] = useState({
+    full_name: "", title: "", phone: "", location: "", bio: "",
+  });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [exists, setExists] = useState(false);
 
   useEffect(() => {
-    const savedProfile = localStorage.getItem("profileData");
-
-    if (savedProfile) {
-      const parsedProfile = JSON.parse(savedProfile);
-
-      setProfile({
-        ...initialState,
-        ...parsedProfile
-      });
-
-      setResumeName(parsedProfile.resume || "");
-
-      if (setProfileName) {
-        setProfileName(parsedProfile.fullName || "Candidate");
-      }
-    }
+    const fetchProfile = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) { setLoading(false); return; }
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const userId = payload.sub;
+      try {
+        const res = await fetch(`${API_BASE}/api/profile/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.status === 401) { localStorage.removeItem("token"); window.location.href = "/"; return; }
+        if (res.ok) {
+          const data = await res.json();
+          setProfile({
+            full_name: data.full_name || "",
+            title: data.title || "",
+            phone: data.phone || "",
+            location: data.location || "",
+            bio: data.bio || "",
+          });
+          setExists(true);
+          if (setProfileName && data.full_name) setProfileName(data.full_name);
+        }
+      } catch (e) {}
+      setLoading(false);
+    };
+    fetchProfile();
   }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    setProfile((prev) => ({
-      ...prev,
-      [name]: value
-    }));
-
-    if (name === "fullName" && setProfileName) {
-      setProfileName(value);
-    }
-
-    setErrors((prev) => ({
-      ...prev,
-      [name]: ""
-    }));
+    setProfile(prev => ({ ...prev, [name]: value }));
+    if (name === "full_name" && setProfileName) setProfileName(value);
   };
 
-  const handleResumeUpload = (e) => {
-    const file = e.target.files[0];
-
-    if (!file) return;
-
-    setResumeName(file.name);
-
-    setProfile((prev) => ({
-      ...prev,
-      resume: file.name
-    }));
+  const handleSave = async () => {
+    const token = localStorage.getItem("token");
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const userId = payload.sub;
+    setSaving(true);
+    setMessage("");
+    try {
+      let res;
+      if (exists) {
+        res = await fetch(`${API_BASE}/api/profile/${userId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify(profile),
+        });
+      } else {
+        res = await fetch(`${API_BASE}/api/profile`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ ...profile, user_id: userId }),
+        });
+        if (res.ok) setExists(true);
+      }
+      if (res.ok) {
+        setMessage("✅ Profile saved successfully");
+      } else {
+        const err = await res.json();
+        setMessage("❌ " + (err.detail || "Save failed"));
+      }
+    } catch (e) {
+      setMessage("❌ Server error");
+    }
+    setSaving(false);
   };
 
   const completion = Math.round(
-    (Object.values(profile).filter(
-      (v) => v && v.toString().trim() !== ""
-    ).length /
-      Object.keys(profile).length) *
-      100
+    Object.values(profile).filter(v => v && v.trim() !== "").length /
+    Object.keys(profile).length * 100
   );
 
-  const handleSave = () => {
-    localStorage.setItem(
-      "profileData",
-      JSON.stringify(profile)
-    );
-
-    localStorage.setItem(
-      "username",
-      profile.fullName
-    );
-
-    if (setProfileName) {
-      setProfileName(profile.fullName);
-    }
-
-    alert("✅ Profile Saved Successfully");
-  };
+  if (loading) return <div className="profile-container"><p>Loading profile...</p></div>;
 
   return (
     <div className="profile-container">
-
-      <h2 className="profile-title">
-        👤 My Profile
-      </h2>
+      <h2 className="profile-title">👤 My Profile</h2>
 
       <div className="completion-box">
         <p>Profile Completion: {completion}%</p>
-
         <div className="progress-bar">
-          <div
-            className="progress-fill"
-            style={{
-  width: `${completion}%`
-}}
-          />
+          <div className="progress-fill" style={{ width: `${completion}%` }} />
         </div>
       </div>
 
-      {profile.fullName && (
+      {profile.full_name && (
         <div className="profile-summary">
-          <h3>{profile.fullName}</h3>
-          <p>📧 {profile.email}</p>
+          <h3>{profile.full_name}</h3>
           <p>📱 {profile.phone}</p>
           <p>📍 {profile.location}</p>
         </div>
       )}
 
       <div className="profile-card">
-
         <h3>Personal Information</h3>
+        <input name="full_name" placeholder="Full Name" value={profile.full_name} onChange={handleChange} />
+        <input name="title" placeholder="Title / Role (e.g. Software Engineer)" value={profile.title} onChange={handleChange} />
+        <input name="phone" placeholder="Phone Number" value={profile.phone} onChange={handleChange} />
+        <input name="location" placeholder="Location" value={profile.location} onChange={handleChange} />
 
-        <input
-          name="fullName"
-          placeholder="Full Name"
-          value={profile.fullName}
-          onChange={handleChange}
-        />
+        <h3>Bio</h3>
+        <textarea name="bio" placeholder="Brief bio about yourself" value={profile.bio} onChange={handleChange} rows={4} />
 
-        <input
-          name="email"
-          placeholder="Email"
-          value={profile.email}
-          onChange={handleChange}
-        />
+        {message && <p style={{ color: message.startsWith("✅") ? "green" : "red" }}>{message}</p>}
 
-        <input
-          name="phone"
-          placeholder="Phone Number"
-          value={profile.phone}
-          onChange={handleChange}
-        />
-
-        <input
-          type="date"
-          name="dob"
-          value={profile.dob}
-          onChange={handleChange}
-        />
-
-        <select
-          name="gender"
-          value={profile.gender}
-          onChange={handleChange}
-        >
-          <option value="">Select Gender</option>
-          <option>Male</option>
-          <option>Female</option>
-          <option>Other</option>
-        </select>
-
-        <input
-          name="location"
-          placeholder="Location"
-          value={profile.location}
-          onChange={handleChange}
-        />
-
-        <h3>Education</h3>
-
-        <input
-          name="college"
-          placeholder="College"
-          value={profile.college}
-          onChange={handleChange}
-        />
-
-        <input
-          name="degree"
-          placeholder="Degree"
-          value={profile.degree}
-          onChange={handleChange}
-        />
-
-        <input
-          name="branch"
-          placeholder="Branch"
-          value={profile.branch}
-          onChange={handleChange}
-        />
-
-        <input
-          name="cgpa"
-          placeholder="CGPA"
-          value={profile.cgpa}
-          onChange={handleChange}
-        />
-
-        <input
-          name="graduationYear"
-          placeholder="Graduation Year"
-          value={profile.graduationYear}
-          onChange={handleChange}
-        />
-
-        <h3>Skills</h3>
-
-        <textarea
-          name="skills"
-          placeholder="Enter your skills"
-          value={profile.skills}
-          onChange={handleChange}
-        />
-
-        <h3>Experience</h3>
-
-        <textarea
-          name="experience"
-          placeholder="Enter experience"
-          value={profile.experience}
-          onChange={handleChange}
-        />
-
-        <h3>Projects</h3>
-
-        <textarea
-          name="projects"
-          placeholder="Enter projects"
-          value={profile.projects}
-          onChange={handleChange}
-        />
-
-        
-
-        <button
-          className="save-btn"
-          onClick={handleSave}
-        >
-          {localStorage.getItem("profileData")
-            ? "Update Profile"
-            : "Save Profile"}
+        <button className="save-btn" onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : exists ? "Update Profile" : "Save Profile"}
         </button>
-
       </div>
     </div>
   );
