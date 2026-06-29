@@ -1,93 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { API_BASE } from "../config/api";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
 function AIRecommendations() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [recommendations, setRecommendations] = useState([]);
 
-  const recommendations = [
-    {
-      id: 1,
-      name: "Vaishnavi",
-      role: "AI Engineer",
-      score: 92,
-      recommendation: "Highly Recommended",
-      details:
-        "Strong Python, AI and Machine Learning skills. Excellent fit for this role.",
-    },
-    {
-      id: 2,
-      name: "Harsha",
-      role: "ML Engineer",
-      score: 93,
-      recommendation: "Highly Recommended",
-      details:
-        "Excellent machine learning knowledge and project experience.",
-    },
-    {
-      id: 3,
-      name: "Navya",
-      role: "Data Scientist",
-      score: 95,
-      recommendation: "Highly Recommended",
-      details:
-        "Outstanding data science and analytics skills.",
-    },
-    {
-      id: 4,
-      name: "Rohith Sharma",
-      role: "React Developer",
-      score: 85,
-      recommendation: "Recommended",
-      details:
-        "Strong React and frontend development experience.",
-    },
-    {
-      id: 5,
-      name: "Sai Kumar",
-      role: "Java Developer",
-      score: 88,
-      recommendation: "Recommended",
-      details:
-        "Good Java and Spring Boot expertise.",
-    },
-    {
-      id: 6,
-      name: "Akshaya",
-      role: "Backend Developer",
-      score: 75,
-      recommendation: "Recommended",
-      details:
-        "Good backend development knowledge with Node.js.",
-    },
-    {
-      id: 7,
-      name: "Praveen",
-      role: "DevOps Engineer",
-      score: 82,
-      recommendation: "Recommended",
-      details:
-        "AWS and DevOps skills match project requirements.",
-    },
-    {
-      id: 8,
-      name: "Deekshitha",
-      role: "Frontend Developer",
-      score: 65,
-      recommendation: "Consider Later",
-      details:
-        "Needs more experience with modern frontend frameworks.",
-    },
-  ];
+  useEffect(() => {
+    fetchRecommendations();
+  }, []);
 
-  const filteredRecommendations = recommendations.filter(
-    (candidate) =>
-      candidate.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      candidate.role
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
+  const fetchRecommendations = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(
+        `${API_BASE}/api/ai/recommendations?limit=10`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      console.log("AI Recommendations:", data);
+
+      setRecommendations(data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const filteredRecommendations = recommendations.filter((candidate) =>
+    (candidate.name || "")
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -99,9 +49,10 @@ function AIRecommendations() {
 
         <div style={{ padding: "30px", flex: 1 }}>
           <h1>⭐ AI Recommendations</h1>
+
           <p>
-            AI-generated candidate recommendations based on
-            resume and job matching.
+            AI-generated candidate recommendations based on resume and job
+            matching.
           </p>
 
           {/* Summary Cards */}
@@ -123,9 +74,7 @@ function AIRecommendations() {
               <p>
                 {
                   recommendations.filter(
-                    (c) =>
-                      c.recommendation ===
-                      "Highly Recommended"
+                    (c) => Number(c.final_score) >= 80
                   ).length
                 }
               </p>
@@ -136,7 +85,7 @@ function AIRecommendations() {
               <p>
                 {
                   recommendations.filter(
-                    (c) => c.score >= 85
+                    (c) => Number(c.final_score) >= 70
                   ).length
                 }
               </p>
@@ -146,11 +95,9 @@ function AIRecommendations() {
           {/* Search */}
           <input
             type="text"
-            placeholder="🔍 Search Candidate or Role..."
+            placeholder="🔍 Search Candidate..."
             value={searchTerm}
-            onChange={(e) =>
-              setSearchTerm(e.target.value)
-            }
+            onChange={(e) => setSearchTerm(e.target.value)}
             style={{
               width: "320px",
               padding: "10px",
@@ -170,19 +117,14 @@ function AIRecommendations() {
           >
             {filteredRecommendations.map((candidate) => (
               <div
-                key={candidate.id}
+                key={candidate.user_id}
                 style={recommendationCard}
               >
                 <h2>👤 {candidate.name}</h2>
 
                 <p>
-                  <strong>Role:</strong>{" "}
-                  {candidate.role}
-                </p>
-
-                <p>
-                  <strong>Match Score:</strong>{" "}
-                  {candidate.score}%
+                  <strong>Final Score:</strong>{" "}
+                  {candidate.final_score}
                 </p>
 
                 <p>
@@ -193,33 +135,33 @@ function AIRecommendations() {
                       borderRadius: "12px",
                       color: "white",
                       backgroundColor:
-                        candidate.recommendation ===
-                        "Highly Recommended"
+                        candidate.final_score >= 80
                           ? "green"
-                          : candidate.recommendation ===
-                            "Recommended"
+                          : candidate.final_score >= 60
                           ? "orange"
                           : "red",
                     }}
                   >
-                    {candidate.recommendation}
+                    {candidate.final_score >= 80
+                      ? "Highly Recommended"
+                      : candidate.final_score >= 60
+                      ? "Recommended"
+                      : "Consider Later"}
                   </span>
                 </p>
 
                 <button
+                  style={viewBtn}
                   onClick={() =>
                     alert(
-                      `Candidate: ${candidate.name}
+`Candidate: ${candidate.name}
 
-Role: ${candidate.role}
+Final Score: ${candidate.final_score}
 
-Match Score: ${candidate.score}%
-
-AI Recommendation:
-${candidate.details}`
+Summary:
+${candidate.summary || "No summary available."}`
                     )
                   }
-                  style={viewBtn}
                 >
                   View Details
                 </button>

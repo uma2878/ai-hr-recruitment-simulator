@@ -1,462 +1,693 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "./AIMockInterview.css";
+import { API_BASE } from "../config/api";
 
 function AIMockInterview() {
+  console.log("AIMockInterview Rendered");
   const videoRef = useRef(null);
-
-  const [role, setRole] = useState("Frontend Developer");
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState({});
-  const [submitted, setSubmitted] = useState(false);
-
-  const [interviewStarted, setInterviewStarted] = useState(false);
-  const [recording, setRecording] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(60);
   const [scores, setScores] = useState(null);
-
+  const [submitted, setSubmitted] =useState(false);
   const [history, setHistory] = useState([]);
 
-  const questions = {
-    "Frontend Developer": [
-      "What is React?",
-      "What is JSX?",
-      "Explain Virtual DOM.",
-      "What are React Hooks?",
-      "Difference between State and Props?"
-    ],
+  const [role, setRole] = useState("Python Developer");
+  const [skills, setSkills] = useState("python");
 
-    "Java Developer": [
-      "What is OOP?",
-      "Explain Inheritance.",
-      "What is Polymorphism?",
-      "What is Exception Handling?",
-      "Difference between JDK and JRE?"
-    ],
+  const [questions, setQuestions] = useState([]);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
 
-    "Python Developer": [
-      "What is Python?",
-      "What are Lists?",
-      "What are Dictionaries?",
-      "What is NumPy?",
-      "Explain OOP in Python."
-    ],
+  const [mockInterviewId, setMockInterviewId] = useState("");
 
-    "HR Interview": [
-      "Tell me about yourself.",
-      "Why should we hire you?",
-      "What are your strengths?",
-      "What are your weaknesses?",
-      "Where do you see yourself in 5 years?"
-    ]
-  };
+  const [answers, setAnswers] = useState({});
 
-  const calculateScore = () => {
-  const text = Object.values(answers)
-  .join(" ")
-  .toLowerCase();
+  const [interviewStarted, setInterviewStarted] =
+    useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
-  let technical = 40;
-  let communication = 40;
-  let confidence = 40;
-  let problemSolving = 40;
+  const [uploadingAnswer, setUploadingAnswer] =
+    useState(false);
 
-  const technicalKeywords = [
-    "react",
-    "javascript",
-    "component",
-    "state",
-    "props",
-    "hook",
-    "api",
-    "java",
-    "python",
-    "sql"
-  ];
+  const [recording, setRecording] =
+    useState(false);
 
-  technicalKeywords.forEach((word) => {
-    if (text.includes(word)) {
-      technical += 5;
-    }
-  });
+  const [timeLeft, setTimeLeft] =
+    useState(60);
+  const [cameraEnabled, setCameraEnabled] =
+    useState(false);
 
-  const totalAnswerLength =
-  Object.values(answers)
-    .join(" ")
-    .length;
+  const [micEnabled, setMicEnabled] =
+    useState(false);
 
-if (totalAnswerLength > 100) {
-  communication += 20;
-}
+  const [feedback, setFeedback] =
+    useState([]);
 
-if (totalAnswerLength > 200) {
-  communication += 20;
-}
-  if (
-    text.includes("i have") ||
-    text.includes("i worked") ||
-    text.includes("i developed")
-  ) {
-    confidence += 25;
-  }
-
-  if (
-    text.includes("solution") ||
-    text.includes("approach") ||
-    text.includes("problem") ||
-    text.includes("implemented")
-  ) {
-    problemSolving += 25;
-  }
-
-  technical = Math.min(technical, 100);
-  communication = Math.min(communication, 100);
-  confidence = Math.min(confidence, 100);
-  problemSolving = Math.min(problemSolving, 100);
-
-  return {
-    technical,
-    communication,
-    confidence,
-    problemSolving,
-    overall: Math.round(
-      (
-        technical +
-        communication +
-        confidence +
-        problemSolving
-      ) / 4
-    )
-  };
-};
-
-  useEffect(() => {
+  const token = localStorage.getItem("token");
+    useEffect(() => {
     const saved =
-      JSON.parse(localStorage.getItem("interviewHistory")) || [];
+      JSON.parse(
+        localStorage.getItem("interviewHistory")
+      ) || [];
 
     setHistory(saved);
   }, []);
+    useEffect(() => {
 
-  useEffect(() => {
     let timer;
 
-    if (interviewStarted && recording && timeLeft > 0) {
+    if (
+      interviewStarted &&
+      recording &&
+      timeLeft > 0
+    ) {
+
       timer = setInterval(() => {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
+
     }
 
     return () => clearInterval(timer);
-  }, [interviewStarted, recording, timeLeft]);
 
-  const startInterview = () => {
-    setInterviewStarted(true);
-    setTimeLeft(60);
-  };
+  }, [
+    interviewStarted,
+    recording,
+    timeLeft,
+  ]);
+    useEffect(() => {
 
-  const startRecording = () => {
-    setRecording(true);
-  };
+    if (
+      timeLeft === 0 &&
+      interviewStarted
+    ) {
 
-  const stopRecording = () => {
-    setRecording(false);
-  };
+      submitCurrentAnswer();
 
-  const startCamera = async () => {
+    }
+
+  }, [timeLeft]);
+    const enableCamera = async () => {
+
     try {
+
       const stream =
         await navigator.mediaDevices.getUserMedia({
-          video: true
+          video: true,
         });
 
-      videoRef.current.srcObject = stream;
+      videoRef.current.srcObject =
+        stream;
+
+      setCameraEnabled(true);
+
     } catch {
-      alert("Camera Permission Denied");
+
+      alert(
+        "Camera permission denied."
+      );
+
     }
+
   };
+    const enableMicrophone =
+    async () => {
+      try {
 
-  const startMic = async () => {
-    try {
-      await navigator.mediaDevices.getUserMedia({
-        audio: true
-      });
+        await navigator.mediaDevices.getUserMedia({
+          audio: true,
+        });
 
-      alert("Microphone Enabled");
-    } catch {
-      alert("Microphone Permission Denied");
+        setMicEnabled(true);
+
+      } catch {
+
+        alert(
+          "Microphone permission denied."
+        );
+
+      }
+
+    };
+      const startSpeechRecognition =
+    () => {
+
+      const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+
+        alert(
+          "Speech Recognition is not supported."
+        );
+
+        return;
+      }
+
+      const recognition =
+        new SpeechRecognition();
+
+      recognition.lang = "en-US";
+
+      recognition.interimResults =
+        false;
+
+      recognition.start();
+
+      recognition.onresult = (
+        event
+      ) => {
+
+        const transcript =
+          event.results[0][0].transcript;
+
+        setAnswers((prev) => ({
+          ...prev,
+          [currentQuestion]:
+            transcript,
+        }));
+
+      };
+
+    };
+      const startInterview =
+    async () => {
+
+      try {
+
+        setLoading(true);
+
+        const response = await fetch(
+  `${API_BASE}/api/mock-interview/start`,
+  {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      role: role,
+      skills: [skills],
+    }),
+  }
+);
+
+        const data = await response.json();
+
+console.log("Status:", response.status);
+console.log("Response:", data);
+console.log("Detail:", data.detail);
+console.log(JSON.stringify(data, null, 2));
+
+if (!response.ok) {
+  alert(JSON.stringify(data));
+  setLoading(false);
+  return;
+}
+
+        setMockInterviewId(
+          data.mock_interview_id
+        );
+
+        await fetchQuestions();
+
+        setInterviewStarted(true);
+
+      } catch (err) {
+
+        console.error(err);
+
+      }
+
+      setLoading(false);
+
+    };
+      const fetchQuestions =
+    async () => {
+
+      try {
+
+        const response =
+          await fetch(
+            `${API_BASE}/api/mock-interview/questions?skills=${skills}&role=${role}&count=5`,
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+              },
+            }
+          );
+
+        const data =
+          await response.json();
+
+        setQuestions(
+          data.questions || []
+        );
+
+      } catch (err) {
+
+        console.error(err);
+
+      }
+
+    };
+      const calculateLocalScore = () => {
+    const text = Object.values(answers)
+      .join(" ")
+      .toLowerCase();
+
+    let technical = 40;
+    let communication = 40;
+    let confidence = 40;
+    let problemSolving = 40;
+
+    const technicalKeywords = [
+      "react",
+      "javascript",
+      "python",
+      "java",
+      "fastapi",
+      "spring",
+      "sql",
+      "mongodb",
+      "node",
+      "api",
+      "database",
+      "algorithm",
+      "oop",
+      "class",
+      "function",
+    ];
+
+    technicalKeywords.forEach((word) => {
+      if (text.includes(word)) {
+        technical += 4;
+      }
+    });
+
+    const answerLength = Object.values(answers)
+      .join(" ")
+      .length;
+
+    if (answerLength > 150) communication += 20;
+    if (answerLength > 300) communication += 20;
+
+    if (
+      text.includes("i developed") ||
+      text.includes("i built") ||
+      text.includes("i created") ||
+      text.includes("i implemented")
+    ) {
+      confidence += 20;
     }
+
+    if (
+      text.includes("solution") ||
+      text.includes("approach") ||
+      text.includes("optimized") ||
+      text.includes("resolved")
+    ) {
+      problemSolving += 20;
+    }
+
+    technical = Math.min(technical, 100);
+    communication = Math.min(communication, 100);
+    confidence = Math.min(confidence, 100);
+    problemSolving = Math.min(problemSolving, 100);
+
+    return {
+      technical,
+      communication,
+      confidence,
+      problemSolving,
+      overall: Math.round(
+        (
+          technical +
+          communication +
+          confidence +
+          problemSolving
+        ) / 4
+      ),
+    };
   };
+    const submitCurrentAnswer = async () => {
 
-  const startListening = () => {
-    const SpeechRecognition =
-      window.SpeechRecognition ||
-      window.webkitSpeechRecognition;
+    if (!answers[currentQuestion]) {
 
-    if (!SpeechRecognition) {
-      alert("Speech Recognition Not Supported");
+      alert("Please answer the question.");
+
       return;
     }
 
-    const recognition = new SpeechRecognition();
+    try {
 
-    recognition.start();
+      setUploadingAnswer(true);
 
-    recognition.onresult = (event) => {
-      const transcript =
-        event.results[0][0].transcript;
+      const response =
+        await fetch(
+          `${API_BASE}/api/mock-interview/submit`,
+          {
+            method: "POST",
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              mock_interview_id:
+                mockInterviewId,
+              answer:
+                answers[currentQuestion],
+            }),
+          }
+        );
 
-    setAnswers({
-  ...answers,
-  [currentQuestion]: transcript
-}); 
-    };
+      const data = await response.json();
+
+console.log("Submit Response:", data);
+
+      if (
+        currentQuestion <
+        questions.length - 1
+      ) {
+
+        setCurrentQuestion(
+          currentQuestion + 1
+        );
+
+        setTimeLeft(60);
+
+        setRecording(false);
+
+      } else {
+
+        finishInterview();
+
+      }
+
+    } catch (err) {
+
+      console.error(err);
+
+    }
+
+    setUploadingAnswer(false);
+
   };
+    const previousQuestion =
+    () => {
 
-  const nextQuestion = () => {
-    setRecording(false);
-    setTimeLeft(60);
+      if (currentQuestion > 0) {
+
+        setCurrentQuestion(
+          currentQuestion - 1
+        );
+
+      }
+
+    };
+      const nextQuestion =
+    () => {
+
+      if (
+        currentQuestion <
+        questions.length - 1
+      ) {
+
+        setCurrentQuestion(
+          currentQuestion + 1
+        );
+
+        setTimeLeft(60);
+
+      }
+
+    };
+      const finishInterview = () => {
+
+    const result =
+      calculateLocalScore();
+
+    setScores(result);
+
+    const aiFeedback = [];
 
     if (
-      currentQuestion <
-      questions[role].length - 1
+      result.technical < 70
     ) {
-      setCurrentQuestion(currentQuestion + 1);
+      aiFeedback.push(
+        "Improve your technical explanations."
+      );
     }
-  };
 
-  const previousQuestion = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(currentQuestion - 1);
+    if (
+      result.communication < 70
+    ) {
+      aiFeedback.push(
+        "Use longer and clearer answers."
+      );
     }
+
+    if (
+      result.confidence < 70
+    ) {
+      aiFeedback.push(
+        "Speak confidently using project examples."
+      );
+    }
+
+    if (
+      result.problemSolving < 70
+    ) {
+      aiFeedback.push(
+        "Explain your approach before giving the solution."
+      );
+    }
+
+    if (
+      aiFeedback.length === 0
+    ) {
+
+      aiFeedback.push(
+        "Excellent performance! Keep practicing."
+      );
+
+    }
+
+    setFeedback(aiFeedback);
+
+    const historyItem = {
+
+      date:
+        new Date().toLocaleString(),
+
+      role,
+
+      score:
+        result.overall,
+
+    };
+
+    const updatedHistory = [
+      ...history,
+      historyItem,
+    ];
+
+    setHistory(updatedHistory);
+
+    localStorage.setItem(
+      "interviewHistory",
+      JSON.stringify(updatedHistory)
+    );
+
+    setSubmitted(true);
+
+    setInterviewStarted(false);
+
   };
-const submitInterview = () => {
+    const restartInterview =
+    () => {
 
-  // Check if user answered at least one question
-  if (Object.keys(answers).length === 0) {
-    alert("Please answer at least one question");
-    return;
-  }
+      setQuestions([]);
 
-  // Generate AI Score
-  const result = calculateScore();
+      setCurrentQuestion(0);
 
-  console.log("AI Result:", result);
+      setAnswers({});
 
-  // Save scores to state
-  setScores(result);
+      setScores(null);
 
-  // Show result section
-  setSubmitted(true);
+      setFeedback([]);
 
-  // Save interview history
-  const historyData = {
-    date: new Date().toLocaleDateString(),
-    role: role,
-    score: result.overall
-  };
+      setInterviewStarted(false);
 
-  const updatedHistory = [
-    ...history,
-    historyData
-  ];
+      setSubmitted(false);
 
-  setHistory(updatedHistory);
+      setRecording(false);
 
-  localStorage.setItem(
-    "interviewHistory",
-    JSON.stringify(updatedHistory)
-  );
+      setTimeLeft(60);
 
-  alert("✅ Interview Submitted Successfully");
-};
+      setMockInterviewId("");
 
+    };
+      const progress =
+    questions.length > 0
+      ? (
+          ((currentQuestion + 1) /
+            questions.length) *
+          100
+        ).toFixed(0)
+      : 0;
+        const startRecording =
+    () => {
 
-  
+      setRecording(true);
+
+      startSpeechRecognition();
+
+    };
+      const stopRecording =
+    () => {
+
+      setRecording(false);
+
+    };
+
   return (
-    <div className="mock-container">
-      <h2>🎤 AI Mock Interview</h2>
+  <div className="mock-container">
 
-      <div className="interview-controls">
-        {!interviewStarted && (
-          <button onClick={startInterview}>
-            🚀 Start Interview
+    <h2>🎤 AI Mock Interview</h2>
+
+    {!interviewStarted && !submitted && (
+      <>
+        <div className="role-section">
+          <label>Role</label>
+
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          >
+            <option>Python Developer</option>
+            <option>Java Developer</option>
+            <option>Frontend Developer</option>
+            <option>Backend Developer</option>
+          </select>
+
+          <br /><br />
+
+          <label>Skills</label>
+
+          <input
+            value={skills}
+            onChange={(e) => setSkills(e.target.value)}
+          />
+
+          <br /><br />
+
+          <button
+            onClick={startInterview}
+            disabled={loading}
+          >
+            {loading ? "Starting..." : "Start Interview"}
           </button>
-        )}
-
-        {interviewStarted && (
-          <>
-            <button onClick={startRecording}>
-              🎤 Start Answer
-            </button>
-
-            <button onClick={stopRecording}>
-              ⏹️ Stop Answer
-            </button>
-          </>
-        )}
-      </div>
-
-      <div className="role-section">
-        <label>Select Role</label>
-
-        <select
-          value={role}
-          onChange={(e) => {
-            setRole(e.target.value);
-            setCurrentQuestion(0);
-          }}
-        >
-          <option>Frontend Developer</option>
-          <option>Java Developer</option>
-          <option>Python Developer</option>
-          <option>HR Interview</option>
-        </select>
-      </div>
-
-      {interviewStarted && (
-        <div className="timer">
-          ⏳ Time Left :
-          {Math.floor(timeLeft / 60)}:
-          {(timeLeft % 60)
-            .toString()
-            .padStart(2, "0")}
         </div>
-      )}
+      </>
+    )}
 
-      <div className="camera-section">
-        <button onClick={startCamera}>
-          📹 Enable Camera
+    {interviewStarted && (
+      <>
+        <h3>Question {currentQuestion + 1}</h3>
+
+        <p>{questions[currentQuestion]}</p>
+
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          className="video-preview"
+        />
+
+        <br />
+
+        <button onClick={enableCamera}>
+          Enable Camera
         </button>
 
-        <button onClick={startMic}>
-          🎤 Enable Mic
+        <button onClick={enableMicrophone}>
+          Enable Mic
         </button>
 
-        <button onClick={startListening}>
-          🎙️ Start Speaking
+        <button onClick={startRecording}>
+          Start Recording
         </button>
-      </div>
 
-      <video
-        ref={videoRef}
-        autoPlay
-        muted
-        className="video-preview"
-      />
+        <button onClick={stopRecording}>
+          Stop Recording
+        </button>
 
-      <div className="question-card">
-        <h3>
-          Question {currentQuestion + 1}/
-          {questions[role].length}
-        </h3>
+        <br /><br />
 
-        <p>
-          {questions[role][currentQuestion]}
-        </p>
-      </div>
+        <textarea
+          rows={6}
+          placeholder="Type your answer..."
+          value={answers[currentQuestion] || ""}
+          onChange={(e) =>
+            setAnswers({
+              ...answers,
+              [currentQuestion]: e.target.value,
+            })
+          }
+        />
 
-      <textarea
-  placeholder="Type your answer..."
-  value={answers[currentQuestion] || ""}
-  onChange={(e) =>
-    setAnswers({
-      ...answers,
-      [currentQuestion]: e.target.value
-    })
-  }
-/>
-  <div className="answer-preview">
+        <br /><br />
 
-  <h3>Your Answers</h3>
-
-  {Object.keys(answers).map((key) => (
-
-    <div
-      key={key}
-      className="answer-card"
-    >
-
-      <h4>
-        Question {parseInt(key) + 1}
-      </h4>
-
-      <p>
-        {answers[key]}
-      </p>
-
-    </div>
-
-  ))}
-
-</div>
-
-      <div className="nav-buttons">
-        <button onClick={previousQuestion}>
+        <button
+          onClick={previousQuestion}
+          disabled={currentQuestion === 0}
+        >
           Previous
         </button>
 
-        <button onClick={nextQuestion}>
-          Next
+        <button
+          onClick={submitCurrentAnswer}
+          disabled={uploadingAnswer}
+        >
+          Submit Answer
         </button>
-      </div>
 
-      <button
-        className="submit-btn"
-        onClick={submitInterview}
-      >
-        Submit Interview
-      </button>
+        <h3>⏳ {timeLeft}s</h3>
+      </>
+    )}
 
-      {submitted && (
-        <div className="results">
-          <h2>📊 AI Evaluation</h2>
+    {submitted && (
+      <>
+        <h2>Interview Result</h2>
 
-          <div className="score-grid">
-            <div className="score-card">
-              Technical Accuracy
-              <h3>{scores?.technical}%</h3>
-            </div>
+        <h3>Overall Score: {scores?.overall}%</h3>
 
-            <div className="score-card">
-              Communication
-              <h3>{scores?.communication}%</h3>
-            </div>
+        <ul>
+          <li>Technical: {scores?.technical}%</li>
+          <li>Communication: {scores?.communication}%</li>
+          <li>Confidence: {scores?.confidence}%</li>
+          <li>Problem Solving: {scores?.problemSolving}%</li>
+        </ul>
 
-            <div className="score-card">
-              Confidence
-              <h3>{scores?.confidence}%</h3>
-            </div>
+        <h3>AI Feedback</h3>
 
-            <div className="score-card">
-              Problem Solving
-              <h3>{scores?.problemSolving}%</h3>
-            </div>
-          </div>
-
-          <h1>
-            Overall Score : {scores?.overall}%
-          </h1>
-
-          <h2>
-            {scores?.overall >= 70
-              ? "✅ PASS"
-              : "❌ NEEDS IMPROVEMENT"}
-          </h2>
-
-          <h2>📜 Interview History</h2>
-
-          {history.map((item, index) => (
-            <div
-              className="history-card"
-              key={index}
-            >
-              <p>{item.date}</p>
-              <p>{item.role}</p>
-              <p>Score : {item.score}%</p>
-            </div>
+        <ul>
+          {feedback.map((item, index) => (
+            <li key={index}>{item}</li>
           ))}
-        </div>
-      )}
-    </div>
-  );
+        </ul>
+
+        <button onClick={restartInterview}>
+          Start New Interview
+        </button>
+      </>
+    )}
+
+  </div>
+);
 }
+
 export default AIMockInterview;

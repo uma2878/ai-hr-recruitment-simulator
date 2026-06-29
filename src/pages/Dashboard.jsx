@@ -1,5 +1,7 @@
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
+import { useEffect, useState } from "react";
+import { API_BASE } from "../config/api";
 
 import {
   BarChart,
@@ -14,6 +16,42 @@ import {
   ResponsiveContainer,
 } from "recharts";
 function Dashboard() {
+  const [summary, setSummary] = useState({
+  total_candidates: 0,
+  total_jobs: 0,
+  total_applications: 0,
+  total_interviews: 0,
+  completed_interviews: 0,
+  avg_match_score: 0,
+  avg_interview_score: 0,
+});
+
+useEffect(() => {
+  const fetchDashboardSummary = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(
+        `${API_BASE}/api/dashboard/summary`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      console.log("Dashboard Summary:", data);
+
+      setSummary(data);
+    } catch (error) {
+      console.error("Dashboard Error:", error);
+    }
+  };
+
+  fetchDashboardSummary();
+}, []);
   const skillsData = [
   { skill: "React", count: 35 },
   { skill: "Python", count: 60 },
@@ -84,24 +122,24 @@ const COLORS = ["#22c55e", "#f59e0b", "#3b82f6"];
             }}
           >
             <div style={cardStyle}>
-              <h3>Total Resumes</h3>
-              <p>120</p>
-            </div>
+  <h3>Total Candidates</h3>
+  <p>{summary.total_candidates}</p>
+</div>
 
-            <div style={cardStyle}>
-              <h3>Matched Candidates</h3>
-              <p>45</p>
-            </div>
+<div style={cardStyle}>
+  <h3>Total Jobs</h3>
+  <p>{summary.total_jobs}</p>
+</div>
 
-            <div style={cardStyle}>
-              <h3>Interviews</h3>
-              <p>20</p>
-            </div>
+<div style={cardStyle}>
+  <h3>Total Applications</h3>
+  <p>{summary.total_applications}</p>
+</div>
 
-            <div style={cardStyle}>
-              <h3>AI Recommendations</h3>
-              <p>15</p>
-            </div>
+<div style={cardStyle}>
+  <h3>Total Interviews</h3>
+  <p>{summary.total_interviews}</p>
+</div>
           </div>
 
           {/* Recent Activity + Hiring Progress */}
@@ -126,7 +164,7 @@ const COLORS = ["#22c55e", "#f59e0b", "#3b82f6"];
             <div style={{ ...sectionCard, flex: 1 }}>
               <h3>📊 Hiring Progress</h3>
 
-              <p>Total Applications: 120</p>
+              <p>Total Applications: {summary.total_applications}</p>
 
               <div style={progressBg}>
                 <div style={progressFill}>

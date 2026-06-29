@@ -1,8 +1,10 @@
 import { useNavigate } from "react-router-dom";
+import { API_BASE } from "../config/api";
 import React, { useState, useEffect } from "react";
 import "./CandidateDashboard.css";
 import CandidateProfile from "./CandidateProfile";
 import AISkillAnalysis from "./AISkillAnalysis";
+import ResumeUpload from "./ResumeUpload";
 import JobRecommendations from "./JobRecommendations";
 import Applications from "./Applications";
 import AIMockInterview from "./AIMockInterview";
@@ -20,60 +22,147 @@ function CandidateDashboard() {
     navigate("/candidate-login");
   }
 };
-  const [page, setPage] = useState("dashboard");
+const [page, setPage] = useState("dashboard");
 
-  const [profilePic, setProfilePic] = useState(null);
-  const [profileName, setProfileName] = useState("Candidate");
+const [profilePic, setProfilePic] = useState(null);
+const [profileName, setProfileName] = useState("Candidate");
+const [profileData, setProfileData] = useState(null);
 
-  const [profileData, setProfileData] = useState(null);
+const [resumeName, setResumeName] = useState(null);
+const [resumeURL, setResumeURL] = useState(null);
 
-  const [resumeName, setResumeName] = useState(null);
-  const [resumeURL, setResumeURL] = useState(null);
- const [searchTerm, setSearchTerm] =
-  useState("");
+const [searchTerm, setSearchTerm] = useState("");
+const [searchResults, setSearchResults] = useState([]);
 
-const [searchResults, setSearchResults] =
-  useState([]);
-
-  const [darkMode, setDarkMode] = useState(
-  JSON.parse(localStorage.getItem("settings"))
-    ?.darkMode || false
+const [darkMode, setDarkMode] = useState(
+  JSON.parse(localStorage.getItem("settings"))?.darkMode || false
 );
 
+const [dashboardStats, setDashboardStats] = useState({
+  applications: 0,
+  underReview: 0,
+  shortlisted: 0,
+  interviews: 0,
+});
+const [skillScore, setSkillScore] = useState(0);
+const [recommendedJobs, setRecommendedJobs] = useState([]);
+  const fetchDashboardStats = async () => {
+  try {
+    const token = localStorage.getItem("token");
 
-  const jobsData = [
-  {
-    role: "Frontend Developer",
-    company: "Google",
-    location: "Bangalore",
-    match: "95%"
-  },
-  {
-    role: "React Developer",
-    company: "Microsoft",
-    location: "Hyderabad",
-    match: "90%"
-  },
-  {
-    role: "Java Developer",
-    company: "Infosys",
-    location: "Pune",
-    match: "88%"
-  },
-  {
-    role: "Python Developer",
-    company: "TCS",
-    location: "Chennai",
-    match: "92%"
-  },
-  {
-    role: "Full Stack Developer",
-    company: "Amazon",
-    location: "Bangalore",
-    match: "96%"
+if (!token) return;
+
+// Decode the JWT payload
+const payload = JSON.parse(atob(token.split(".")[1]));
+const userId = payload.sub;
+
+console.log("Token:", token);
+console.log("User ID:", userId);
+
+    const [applicationsRes, interviewsRes] = await Promise.all([
+      fetch(`${API_BASE}/api/applications/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
+      fetch(`${API_BASE}/api/interviews/status/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
+    ]);
+
+    const applications = applicationsRes.ok
+      ? await applicationsRes.json()
+      : [];
+
+    const interviews = interviewsRes.ok
+      ? await interviewsRes.json()
+      : [];
+      console.log("Applications:", applications);
+console.log("Interviews:", interviews);
+
+    setDashboardStats({
+      applications: applications.length,
+      underReview: applications.filter(
+  (app) => app.status?.toLowerCase() === "under review"
+).length,
+
+shortlisted: applications.filter(
+  (app) => app.status?.toLowerCase() === "shortlisted"
+).length,
+      interviews: interviews.length,
+    });
+  } catch (error) {
+    console.error("Error fetching dashboard stats:", error);
   }
-];
+};
+const fetchSkillScore = async () => {
+  try {
+    const token = localStorage.getItem("token");
 
+    if (!token) return;
+
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const userId = payload.sub;
+
+    const response = await fetch(
+      `${API_BASE}/api/ai/skill-analysis/${userId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) return;
+
+    const data = await response.json();
+
+    const total =
+      data.strengths.length + data.gaps.length;
+
+    const score =
+      total === 0
+        ? 0
+        : Math.round(
+            (data.strengths.length / total) * 100
+          );
+
+    setSkillScore(score);
+
+  } catch (error) {
+    console.error("Skill Score Error:", error);
+  }
+};
+const fetchRecommendedJobs = async () => {
+  try {
+    const token = localStorage.getItem("token");
+
+    if (!token) return;
+
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    const userId = payload.sub;
+
+    const response = await fetch(
+      `${API_BASE}/api/jobs/recommendations/${userId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) return;
+
+    const data = await response.json();
+
+    setRecommendedJobs(data);
+
+  } catch (error) {
+    console.error("Recommendation Error:", error);
+  }
+}; 
   useEffect(() => {
   const settings =
     JSON.parse(
@@ -83,6 +172,11 @@ const [searchResults, setSearchResults] =
   if (settings) {
     setDarkMode(settings.darkMode);
   }
+}, []);
+useEffect(() => {
+  fetchDashboardStats();
+  fetchSkillScore();
+  fetchRecommendedJobs();
 }, []);
 
   useEffect(() => {
@@ -107,59 +201,6 @@ const [searchResults, setSearchResults] =
   const removeProfile = () => {
     setProfilePic(null);
   };
-
-  const generateJobs = () => {
-    if (!profileData) {
-      return [
-        {
-          role: "Complete Profile First",
-          company: "System",
-          match: "0%",
-        },
-      ];
-    }
-
-    const skills = profileData.skills?.toLowerCase() || "";
-    let jobs = [];
-
-    if (skills.includes("react") || skills.includes("frontend")) {
-      jobs.push({
-        role: "Frontend Developer",
-        company: "TCS",
-        match: "92%",
-      });
-    }
-
-    if (skills.includes("java")) {
-      jobs.push({
-        role: "Java Developer",
-        company: "Infosys",
-        match: "88%",
-      });
-    }
-
-    if (skills.includes("python")) {
-      jobs.push({
-        role: "Python Developer",
-        company: "Wipro",
-        match: "86%",
-      });
-    }
-
-    if (jobs.length === 0) {
-      jobs.push({
-        role: "Software Trainee",
-        company: "Startup",
-        match: "75%",
-      });
-    }
-
-    return jobs;
-  };
-
-
-
-
   const renderPage = () => {
     switch (page) {
       case "profile":
@@ -167,86 +208,8 @@ const [searchResults, setSearchResults] =
 
       case "ai":
         return <AISkillAnalysis />;
-
-      case "resume":
-        return (
-          <div className="card">
-            <h2>📄 Resume Upload</h2>
-
-            <br />
-
-            <input
-              type="file"
-              accept=".pdf,.doc,.docx"
-              onChange={(e) => {
-                const file = e.target.files?.[0];
-
-                if (!file) return;
-
-                setResumeName(file.name);
-                setResumeURL(URL.createObjectURL(file));
-              }}
-            />
-
-            {resumeName && (
-              <div style={{ marginTop: "20px" }}>
-                <p>📌 {resumeName}</p>
-
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "10px",
-                    marginTop: "15px",
-                  }}
-                >
-                  <button
-                    onClick={() => {
-                      window.open(resumeURL, "_blank");
-                    }}
-                  >
-                    Preview
-                  </button>
-
-                  <label
-                    style={{
-                      background: "#2563eb",
-                      color: "#fff",
-                      padding: "8px 12px",
-                      borderRadius: "8px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Replace
-
-                    <input
-                      hidden
-                      type="file"
-                      accept=".pdf,.doc,.docx"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-
-                        if (!file) return;
-
-                        setResumeName(file.name);
-                        setResumeURL(URL.createObjectURL(file));
-                      }}
-                    />
-                  </label>
-
-                  <button
-                    style={{ background: "red" }}
-                    onClick={() => {
-                      setResumeName(null);
-                      setResumeURL(null);
-                    }}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        );
+        case "resume":
+  return <ResumeUpload goBack={() => setPage("dashboard")} />;
 
       case "jobs":
   return <JobRecommendations />;
@@ -279,17 +242,17 @@ const [searchResults, setSearchResults] =
 
             <div className="stats-grid">
               <div className="card stat-card">
-                <h2>12</h2>
+                <h2>{dashboardStats.applications}</h2>
                 <p>Applications</p>
               </div>
 
               <div className="card stat-card">
-                <h2>5</h2>
+                <h2>{dashboardStats.underReview}</h2>
                 <p>Under Review</p>
               </div>
 
               <div className="card stat-card">
-                <h2>3</h2>
+                <h2>{dashboardStats.shortlisted}</h2>
                 <p>Shortlisted</p>
               </div>
 
@@ -306,11 +269,11 @@ const [searchResults, setSearchResults] =
                 <h2>AI Skill Score</h2>
 
                 <div className="score-circle">
-                  <span>78%</span>
+                  <span>{skillScore}%</span>
                 </div>
 
                 <p>
-                  Your profile is stronger than 78% of candidates.
+                  Your current AI skill score is {skillScore}%.
                 </p>
 
                 <br />
@@ -346,19 +309,42 @@ const [searchResults, setSearchResults] =
                 AI RECOMMENDED JOBS
               </h2>
 
-              {generateJobs().map((job, index) => (
-                <div className="job-card" key={index}>
-                  <div>
-                    <h4>{job.role}</h4>
-                    <p>{job.company}</p>
-                  </div>
+              {recommendedJobs.length > 0 ? (
+  recommendedJobs.map((job) => (
+    <div className="job-card" key={job.job_id}>
+      <div>
+        <h4>{job.title}</h4>
 
-                  <div className="job-right">
-                    <span>{job.match}</span>
-                    <button>Apply</button>
-                  </div>
-                </div>
-              ))}
+        <p>
+          Match Score: <strong>{job.score}%</strong>
+        </p>
+
+        <p>
+          Missing Skills:{" "}
+          {job.missing_skills.length > 0
+            ? job.missing_skills.join(", ")
+            : "None"}
+        </p>
+
+        <p>
+          {job.reasons.length > 0
+            ? job.reasons[0]
+            : ""}
+        </p>
+      </div>
+
+      <div className="job-right">
+        <span>{job.score}%</span>
+
+        <button>Apply</button>
+      </div>
+    </div>
+  ))
+) : (
+  <div className="card">
+    <p>No job recommendations available.</p>
+  </div>
+)}
             </div>
           </>
         );

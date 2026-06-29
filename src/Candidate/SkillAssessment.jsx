@@ -1,245 +1,146 @@
 import React, { useState, useEffect } from "react";
-import "./SkillAssessment.css";
+import { API_BASE } from "../config/api";
 
-function SkillAssessment() {
-  const profile =
-    JSON.parse(localStorage.getItem("profileData")) || {};
+function SkillAssessment({ goBack }) {
+  const [questions, setQuestions] = useState([]);
+  const [assessmentId, setAssessmentId] = useState("");
 
-  const [step, setStep] = useState("home");
-  const [testType, setTestType] = useState("");
-  const [index, setIndex] = useState(0);
-  const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(15);
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState({});
 
-  const questions = {
-    technical: [
-      {
-        q: "What is React?",
-        options: ["Library", "Framework", "Language", "Database"],
-        answer: 0,
-      },
-      {
-        q: "What is JSX?",
-        options: ["HTML in JS", "CSS", "Database", "API"],
-        answer: 0,
-      },
-    ],
-    aptitude: [
-      {
-        q: "5 + 3 * 2 = ?",
-        options: ["16", "11", "13", "10"],
-        answer: 1,
-      },
-    ],
-    communication: [
-      {
-        q: "Best communication skill?",
-        options: ["Listening", "Arguing", "Ignoring", "Silence"],
-        answer: 0,
-      },
-    ],
-  };
+  const [loading, setLoading] = useState(false);
 
-  // TIMER SYSTEM
   useEffect(() => {
-    if (step !== "test") return;
+    startAssessment();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev === 1) {
-          handleAnswer(-1);
-          return 15;
+  const startAssessment = async () => {
+    try {
+      setLoading(true);
+
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(
+        `${API_BASE}/api/assessment/start?skills=python&count=10`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [step, index]);
-
-  const startTest = (type) => {
-    setTestType(type);
-    setStep("test");
-    setIndex(0);
-    setScore(0);
-    setTimeLeft(15);
-  };
-
-  const handleAnswer = (i) => {
-    const q = questions[testType][index];
-
-    if (i === q.answer) {
-      setScore((prev) => prev + 1);
-    } else {
-      setScore((prev) => prev - 0.25); // negative marking
-    }
-
-    const next = index + 1;
-
-    if (next < questions[testType].length) {
-      setIndex(next);
-      setTimeLeft(15);
-    } else {
-      setStep("result");
-    }
-  };
-
-  const restart = () => {
-    setStep("home");
-    setTestType("");
-    setIndex(0);
-    setScore(0);
-    setTimeLeft(15);
-  };
-
-  // PROGRESS BAR
-  const progress =
-    step === "test"
-      ? ((index + 1) / questions[testType].length) * 100
-      : 0;
-
-  // SAVE RESULT
-  useEffect(() => {
-    if (step === "result") {
-      const total = questions[testType].length;
-      const percentage = Math.max(
-        0,
-        Math.round((score / total) * 100)
       );
 
-      let status = "Rejected";
-      if (percentage >= 75) status = "Shortlisted";
-      else if (percentage >= 50) status = "Considerable";
+      const data = await response.json();
 
-      localStorage.setItem(
-        "assessmentResult",
-        JSON.stringify({
-          score,
-          percentage,
-          status,
-        })
-      );
+      setAssessmentId(data.assessment_id);
+      setQuestions(data.questions || []);
+
+      setLoading(false);
+
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
     }
-  }, [step]);
+  };
 
-  // ---------------- HOME ----------------
-  if (step === "home") {
-    return (
-      <div className="assessment-page">
-        <h1>Skill Assessment Center</h1>
+  const selectAnswer = (questionId, optionIndex) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [questionId]: optionIndex,
+    }));
+  };
+  const submitAssessment = async () => {
+  try {
+    const token = localStorage.getItem("token");
 
-        <div className="grid">
-          <div className="card">
-            <h2>Technical Test</h2>
-            <button onClick={() => startTest("technical")}>
-              Start
-            </button>
-          </div>
-
-          <div className="card">
-            <h2>Aptitude Test</h2>
-            <button onClick={() => startTest("aptitude")}>
-              Start
-            </button>
-          </div>
-
-          <div className="card">
-            <h2>Communication Test</h2>
-            <button
-              onClick={() => startTest("communication")}
-            >
-              Start
-            </button>
-          </div>
-        </div>
-      </div>
+    const response = await fetch(
+      `${API_BASE}/api/assessment/submit`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          assessment_id: assessmentId,
+          answers: answers,
+        }),
+      }
     );
+
+    const data = await response.json();
+
+    console.log("Assessment Result:", data);
+
+    if (!response.ok) {
+      alert(data.detail || "Submission failed");
+      return;
+    }
+
+    alert(`Assessment Submitted!\nScore: ${data.score}%`);
+
+  } catch (err) {
+    console.error(err);
   }
-
-  // ---------------- TEST ----------------
-  if (step === "test") {
-    const q = questions[testType][index];
-
-    return (
-      <div className="assessment-page">
-        <h2>{testType.toUpperCase()} TEST</h2>
-
-        {/* TIMER */}
-        <div className="timer">⏱ {timeLeft}s</div>
-
-        {/* PROGRESS BAR */}
-        <div className="progress-bar">
-          <div
-            className="progress-fill"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-
-        <div className="card">
-          <h3>
-            Q{index + 1}: {q.q}
-          </h3>
-
-          {q.options.map((opt, i) => (
-            <button
-              key={i}
-              onClick={() => handleAnswer(i)}
-              className="option-btn"
-            >
-              {opt}
-            </button>
-          ))}
-
-          {/* SKIP BUTTON */}
-          <button
-            onClick={() => handleAnswer(-1)}
-            style={{ background: "gray", marginTop: 10 }}
-          >
-            Skip
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ---------------- RESULT ----------------
-  const total = questions[testType].length;
-  const percentage = Math.max(
-    0,
-    Math.round((score / total) * 100)
-  );
-
-  let status = "Rejected";
-  if (percentage >= 75) status = "Shortlisted";
-  else if (percentage >= 50) status = "Considerable";
-
-  const interviewUnlocked = percentage >= 70;
+};
 
   return (
-    <div className="assessment-page">
-      <div className="card">
-        <h1>Assessment Result</h1>
+    <div className="card">
+      <h2>Skill Assessment</h2>
 
-        <p>
-          <b>Name:</b> {profile.fullName || "Candidate"}
-        </p>
+      {loading && <p>Loading Questions...</p>}
 
-        <h2>
-          Score: {score}/{total} ({percentage}%)
-        </h2>
+      {!loading && questions.length > 0 && (
+        <>
+          <h3>
+            Question {currentQuestion + 1} of {questions.length}
+          </h3>
 
-        <h3>Status: {status}</h3>
+          <h4>{questions[currentQuestion].prompt}</h4>
 
-        {interviewUnlocked && (
-          <p style={{ color: "green" }}>
-            🎉 Mock Interview Unlocked
-          </p>
-        )}
+          {questions[currentQuestion].options.map((option, index) => (
+            <div key={option}>
+              <label>
+                <input
+                  type="radio"
+                  name={String(questions[currentQuestion].id)}
+                  checked={answers[questions[currentQuestion].id] === index}
+                  onChange={() =>
+                    selectAnswer(questions[currentQuestion].id, index)
+                  }
+                />
+                {option}
+              </label>
+            </div>
+          ))}
 
-        <button onClick={restart}>
-          Retake Test
-        </button>
-      </div>
+          <br />
+
+          <button
+            disabled={currentQuestion === 0}
+            onClick={() => setCurrentQuestion(currentQuestion - 1)}
+          >
+            Previous
+          </button>
+
+          {" "}
+
+          {currentQuestion < questions.length - 1 ? (
+            <button onClick={() => setCurrentQuestion(currentQuestion + 1)}>
+              Next
+            </button>
+          ) : (
+            <button onClick={submitAssessment}>
+  Submit Assessment
+</button>
+          )}
+        </>
+      )}
+
+      <br />
+      <br />
+
+      <button onClick={goBack}>Back</button>
     </div>
   );
 }

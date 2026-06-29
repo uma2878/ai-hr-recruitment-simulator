@@ -1,3 +1,6 @@
+import { API_BASE } from "./config/api";
+
+console.log("Backend URL:", API_BASE);
 import { Routes, Route } from "react-router-dom";
 
 // Login Pages

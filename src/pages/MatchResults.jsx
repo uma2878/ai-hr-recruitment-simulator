@@ -1,92 +1,48 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { API_BASE } from "../config/api";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
 function MatchResults() {
   const [searchTerm, setSearchTerm] = useState("");
+const [matches, setMatches] = useState([]);
 
-  const matches = [
-    {
-      id: 1,
-      name: "Vaishnavi",
-      role: "AI Engineer",
-      score: 92,
-      status: "Excellent",
-    },
-    {
-      id: 2,
-      name: "Rohith Sharma",
-      role: "React Developer",
-      score: 85,
-      status: "Good",
-    },
-    {
-      id: 3,
-      name: "Akshaya",
-      role: "Backend Developer",
-      score: 75,
-      status: "Good",
-    },
-    {
-      id: 4,
-      name: "Sai Kumar",
-      role: "Java Developer",
-      score: 88,
-      status: "Good",
-    },
-    {
-      id: 5,
-      name: "Navya",
-      role: "Data Scientist",
-      score: 95,
-      status: "Excellent",
-    },
-    {
-      id: 6,
-      name: "Praveen",
-      role: "DevOps Engineer",
-      score: 82,
-      status: "Good",
-    },
-    {
-      id: 7,
-      name: "Deekshitha",
-      role: "Frontend Developer",
-      score: 65,
-      status: "Needs Improvement",
-    },
-    {
-      id: 8,
-      name: "Harsha",
-      role: "ML Engineer",
-      score: 93,
-      status: "Excellent",
-    },
-    {
-      id: 9,
-      name: "Mahesh",
-      role: "Power BI Analyst",
-      score: 78,
-      status: "Good",
-    },
-    {
-      id: 10,
-      name: "Anil Siva Kumar",
-      role: "UI/UX Developer",
-      score: 70,
-      status: "Good",
-    },
-  ];
+useEffect(() => {
+  fetchMatches();
+}, []);
+
+const fetchMatches = async () => {
+  try {
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(
+      `${API_BASE}/api/match-results`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const data = await response.json();
+
+    console.log("Match Results:", data);
+
+    setMatches(data.items || []);
+  } catch (error) {
+    console.error("Error fetching matches:", error);
+  }
+};
 
   const filteredMatches = matches.filter(
-    (candidate) =>
-      candidate.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      candidate.role
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-  );
+  (candidate) =>
+    candidate.candidate_name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase()) ||
+    candidate.job_title
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+);
 
   return (
     <>
@@ -109,8 +65,37 @@ function MatchResults() {
             }}
           >
             <div style={cardStyle}>
-              <h3>Total Candidates</h3>
-              <p>{matches.length}</p>
+              <h3>Recommended</h3>
+<p>
+{
+matches.filter(
+(c)=>c.recommendation==="Recommended"
+).length
+}
+</p>
+<h3>Applied</h3>
+<p>
+{
+matches.filter(
+(c)=>c.status==="applied"
+).length
+}
+</p>
+<h3>Avg Final Score</h3>
+<p>
+{
+matches.length
+?
+Math.round(
+matches.reduce(
+(sum,c)=>sum+c.final_score,
+0
+)/matches.length
+)
+:0
+}
+%
+</p>
             </div>
 
             <div style={cardStyle}>
@@ -180,66 +165,104 @@ function MatchResults() {
                   color: "white",
                 }}
               >
-                <th style={tableHeader}>ID</th>
                 <th style={tableHeader}>Candidate</th>
-                <th style={tableHeader}>Job Role</th>
-                <th style={tableHeader}>Match Score</th>
-                <th style={tableHeader}>Status</th>
-                <th style={tableHeader}>Action</th>
+<th style={tableHeader}>Job</th>
+<th style={tableHeader}>Resume</th>
+<th style={tableHeader}>Match</th>
+<th style={tableHeader}>Interview</th>
+<th style={tableHeader}>Final</th>
+<th style={tableHeader}>Status</th>
+<th style={tableHeader}>Recommendation</th>
+<th style={tableHeader}>Action</th>
               </tr>
             </thead>
 
             <tbody>
               {filteredMatches.map((candidate) => (
-                <tr key={candidate.id}>
-                  <td style={tableCell}>{candidate.id}</td>
-                  <td style={tableCell}>
-                    {candidate.name}
-                  </td>
-                  <td style={tableCell}>
-                    {candidate.role}
-                  </td>
-                  <td style={tableCell}>
-                    {candidate.score}%
-                  </td>
+                <tr key={candidate.user_id}>
+  <td style={tableCell}>
+    {candidate.candidate_name}
+  </td>
 
-                  <td style={tableCell}>
-                    <span
-                      style={{
-                        padding: "5px 10px",
-                        borderRadius: "15px",
-                        color: "white",
-                        backgroundColor:
-                          candidate.status ===
-                          "Excellent"
-                            ? "green"
-                            : candidate.status ===
-                              "Good"
-                            ? "orange"
-                            : "red",
-                      }}
-                    >
-                      {candidate.status}
-                    </span>
-                  </td>
+  <td style={tableCell}>
+    {candidate.job_title}
+  </td>
 
-                  <td style={tableCell}>
-                    <button
-                      onClick={() =>
-                        alert(
-                          `${candidate.name}
+  <td style={tableCell}>
+    {candidate.resume_score}
+  </td>
 
-Role: ${candidate.role}
-Match Score: ${candidate.score}%
-Status: ${candidate.status}`
-                        )
-                      }
-                      style={viewBtn}
-                    >
-                      View Match
-                    </button>
-                  </td>
-                </tr>
+  <td style={tableCell}>
+    {candidate.match_score}
+  </td>
+
+  <td style={tableCell}>
+    {candidate.interview_score}
+  </td>
+
+  <td style={tableCell}>
+    <strong>{candidate.final_score}</strong>
+  </td>
+
+  <td style={tableCell}>
+    <span
+      style={{
+        padding: "5px 10px",
+        borderRadius: "15px",
+        color: "white",
+        backgroundColor:
+          candidate.status === "applied"
+            ? "orange"
+            : "green",
+      }}
+    >
+      {candidate.status}
+    </span>
+  </td>
+
+  <td style={tableCell}>
+    <span
+      style={{
+        padding: "5px 10px",
+        borderRadius: "15px",
+        color: "white",
+        backgroundColor:
+          candidate.recommendation === "Recommended"
+            ? "green"
+            : "red",
+      }}
+    >
+      {candidate.recommendation}
+    </span>
+  </td>
+
+  <td style={tableCell}>
+    <button
+      style={viewBtn}
+      onClick={() =>
+        alert(
+`Candidate : ${candidate.candidate_name}
+
+Job : ${candidate.job_title}
+
+Resume Score : ${candidate.resume_score}
+
+Match Score : ${candidate.match_score}
+
+Interview Score : ${candidate.interview_score}
+
+Final Score : ${candidate.final_score}
+
+Status : ${candidate.status}
+
+Recommendation : ${candidate.recommendation}`
+        )
+      }
+    >
+      View
+    </button>
+  </td>
+</tr>
               ))}
             </tbody>
           </table>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { API_BASE } from "../config/api";
 import { useLocation } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
@@ -8,108 +9,75 @@ function CandidateList() {
 
   const [searchTerm, setSearchTerm] = useState("");
 
-  const [candidates, setCandidates] = useState([
-    {
-      id: 1,
-      name: "Rohith Sharma",
-      email: "rohith@gmail.com",
-      skills: "React, Java",
-      score: "85%",
-      status: "Shortlisted",
-    },
-    {
-      id: 2,
-      name: "Vaishnavi",
-      email: "vaishnavi@gmail.com",
-      skills: "Python, AI",
-      score: "92%",
-      status: "Selected",
-    },
-    {
-      id: 3,
-      name: "Akshaya",
-      email: "akshaya@gmail.com",
-      skills: "Node.js, MongoDB",
-      score: "75%",
-      status: "Pending",
-    },
-    {
-      id: 4,
-      name: "Sai Kumar",
-      email: "sai@gmail.com",
-      skills: "Java, Spring Boot",
-      score: "88%",
-      status: "Selected",
-    },
-    {
-      id: 5,
-      name: "Anil Siva Kumar",
-      email: "anil@gmail.com",
-      skills: "React, UI/UX",
-      score: "81%",
-      status: "Shortlisted",
-    },
-    {
-      id: 6,
-      name: "Navya",
-      email: "navya@gmail.com",
-      skills: "Python, Data Science",
-      score: "95%",
-      status: "Selected",
-    },
-    {
-      id: 7,
-      name: "Deekshitha",
-      email: "deekshitha@gmail.com",
-      skills: "HTML, CSS, JavaScript",
-      score: "78%",
-      status: "Pending",
-    },
-    {
-      id: 8,
-      name: "Praveen",
-      email: "praveen@gmail.com",
-      skills: "AWS, DevOps",
-      score: "89%",
-      status: "Shortlisted",
-    },
-    {
-      id: 9,
-      name: "Harsha",
-      email: "harsha@gmail.com",
-      skills: "Machine Learning",
-      score: "93%",
-      status: "Selected",
-    },
-    {
-      id: 10,
-      name: "Mahesh",
-      email: "mahesh@gmail.com",
-      skills: "SQL, Power BI",
-      score: "82%",
-      status: "Shortlisted",
-    },
-  ]);
+  const [candidates, setCandidates] = useState([]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const searchValue = params.get("search") || "";
     setSearchTerm(searchValue);
   }, [location.search]);
+  useEffect(() => {
+  const fetchCandidates = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-  const handleDelete = (id, name) => {
-    const confirmDelete = window.confirm(
-      `Are you sure you want to delete ${name}?`
-    );
-
-    if (confirmDelete) {
-      setCandidates((prevCandidates) =>
-        prevCandidates.filter(
-          (candidate) => candidate.id !== id
-        )
+      const response = await fetch(
+        `${API_BASE}/api/candidates`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
+
+      const data = await response.json();
+
+      console.log("Candidates:", data);
+
+      setCandidates(data.items || []);
+    } catch (error) {
+      console.error("Error fetching candidates:", error);
     }
   };
+
+  fetchCandidates();
+}, []);
+
+  const handleDelete = async (id, name) => {
+  const confirmDelete = window.confirm(
+    `Are you sure you want to delete ${name}?`
+  );
+
+  if (!confirmDelete) return;
+
+  try {
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(
+      `${API_BASE}/api/candidates/${id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (response.ok) {
+      alert("Candidate deleted successfully.");
+
+      setCandidates((prev) =>
+        prev.filter((candidate) => candidate.id !== id)
+      );
+    } else {
+      const error = await response.json();
+      alert(error.detail || "Failed to delete candidate.");
+    }
+  } catch (error) {
+    console.error(error);
+    alert("Server error.");
+  }
+};
 
   const filteredCandidates = candidates.filter(
     (candidate) =>
@@ -120,72 +88,62 @@ function CandidateList() {
         .toLowerCase()
         .includes(searchTerm.toLowerCase())
   );
+return (
+  <>
+    <Navbar />
 
-  return (
-    <>
-      <Navbar />
+    <div style={{ display: "flex" }}>
+      <Sidebar />
 
-      <div style={{ display: "flex" }}>
-        <Sidebar />
+      <div
+        style={{
+          padding: "30px",
+          flex: 1,
+          backgroundColor: "#f8fafc",
+        }}
+      >
+        <h1>📋 Candidate List</h1>
+
+        {/* Summary Cards */}
 
         <div
           style={{
-            padding: "30px",
-            flex: 1,
-            backgroundColor: "#f8fafc",
+            display: "flex",
+            gap: "20px",
+            marginBottom: "25px",
+            flexWrap: "wrap",
           }}
         >
-          <h1>📋 Candidate List</h1>
-
-          {/* Summary Cards */}
-
-          <div
-            style={{
-              display: "flex",
-              gap: "20px",
-              marginBottom: "25px",
-              flexWrap: "wrap",
-            }}
-          >
-            <div style={cardStyle}>
-              <h3>Total Candidates</h3>
-              <p>{candidates.length}</p>
-            </div>
-
-            <div style={cardStyle}>
-              <h3>Selected</h3>
-              <p>
-                {
-                  candidates.filter(
-                    (c) => c.status === "Selected"
-                  ).length
-                }
-              </p>
-            </div>
-
-            <div style={cardStyle}>
-              <h3>Shortlisted</h3>
-              <p>
-                {
-                  candidates.filter(
-                    (c) => c.status === "Shortlisted"
-                  ).length
-                }
-              </p>
-            </div>
-
-            <div style={cardStyle}>
-              <h3>Pending</h3>
-              <p>
-                {
-                  candidates.filter(
-                    (c) => c.status === "Pending"
-                  ).length
-                }
-              </p>
-            </div>
+          <div style={cardStyle}>
+            <h3>Total Candidates</h3>
+            <p>{candidates.length}</p>
           </div>
 
+          <div style={cardStyle}>
+            <h3>Total Resumes</h3>
+            <p>
+              {candidates.reduce(
+                (sum, c) => sum + (c.resume_count || 0),
+                0
+              )}
+            </p>
+          </div>
+
+          <div style={cardStyle}>
+            <h3>Total Applications</h3>
+            <p>
+              {candidates.reduce(
+                (sum, c) => sum + (c.application_count || 0),
+                0
+              )}
+            </p>
+          </div>
+
+          <div style={cardStyle}>
+            <h3>Candidate Users</h3>
+            <p>{candidates.length}</p>
+          </div>
+        </div>
           {/* Search Box */}
 
           <input
@@ -223,9 +181,9 @@ function CandidateList() {
                 <th style={tableHeader}>ID</th>
                 <th style={tableHeader}>Name</th>
                 <th style={tableHeader}>Email</th>
-                <th style={tableHeader}>Skills</th>
-                <th style={tableHeader}>Match Score</th>
-                <th style={tableHeader}>Status</th>
+                <th style={tableHeader}>Role</th>
+                <th style={tableHeader}>Resumes</th>
+                <th style={tableHeader}>Applications</th>
                 <th style={tableHeader}>Actions</th>
               </tr>
             </thead>
@@ -246,31 +204,16 @@ function CandidateList() {
                   </td>
 
                   <td style={tableCell}>
-                    {candidate.skills}
-                  </td>
+  {candidate.role}
+</td>
 
-                  <td style={tableCell}>
-                    {candidate.score}
-                  </td>
+<td style={tableCell}>
+  {candidate.resume_count}
+</td>
 
-                  <td style={tableCell}>
-                    <span
-                      style={{
-                        padding: "5px 10px",
-                        borderRadius: "15px",
-                        color: "white",
-                        backgroundColor:
-                          candidate.status === "Selected"
-                            ? "green"
-                            : candidate.status ===
-                              "Shortlisted"
-                            ? "orange"
-                            : "#2563eb",
-                      }}
-                    >
-                      {candidate.status}
-                    </span>
-                  </td>
+<td style={tableCell}>
+  {candidate.application_count}
+</td>
 
                   <td style={tableCell}>
                     <button
@@ -278,9 +221,9 @@ function CandidateList() {
                         alert(
                           `Name: ${candidate.name}
 Email: ${candidate.email}
-Skills: ${candidate.skills}
-Match Score: ${candidate.score}
-Status: ${candidate.status}`
+Role: ${candidate.role}
+Resumes: ${candidate.resume_count}
+Applications: ${candidate.application_count}`
                         )
                       }
                       style={viewButton}
@@ -289,16 +232,13 @@ Status: ${candidate.status}`
                     </button>
 
                     <button
-                      onClick={() =>
-                        handleDelete(
-                          candidate.id,
-                          candidate.name
-                        )
-                      }
-                      style={deleteButton}
-                    >
-                      Delete
-                    </button>
+  onClick={() =>
+    handleDelete(candidate.id, candidate.name)
+  }
+  style={deleteButton}
+>
+  Delete
+</button>
                   </td>
                 </tr>
               ))}

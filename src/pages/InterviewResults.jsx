@@ -1,94 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { API_BASE } from "../config/api";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
 function InterviewResults() {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const interviews = [
-    {
-      id: 1,
-      name: "Vaishnavi",
-      role: "AI Engineer",
-      score: 92,
-      result: "Passed",
-      feedback:
-        "Excellent communication, strong AI knowledge, and problem-solving skills.",
-    },
-    {
-      id: 2,
-      name: "Rohith Sharma",
-      role: "React Developer",
-      score: 85,
-      result: "Passed",
-      feedback:
-        "Good React concepts and frontend development skills.",
-    },
-    {
-      id: 3,
-      name: "Navya",
-      role: "Data Scientist",
-      score: 95,
-      result: "Passed",
-      feedback:
-        "Outstanding analytical and data science skills.",
-    },
-    {
-      id: 4,
-      name: "Harsha",
-      role: "ML Engineer",
-      score: 90,
-      result: "Passed",
-      feedback:
-        "Strong machine learning fundamentals and project experience.",
-    },
-    {
-      id: 5,
-      name: "Sai Kumar",
-      role: "Java Developer",
-      score: 78,
-      result: "Pending",
-      feedback:
-        "Technical skills are good. Awaiting final HR round.",
-    },
-    {
-      id: 6,
-      name: "Akshaya",
-      role: "Backend Developer",
-      score: 68,
-      result: "Failed",
-      feedback:
-        "Needs improvement in backend architecture concepts.",
-    },
-    {
-      id: 7,
-      name: "Praveen",
-      role: "DevOps Engineer",
-      score: 82,
-      result: "Passed",
-      feedback:
-        "Good AWS and DevOps knowledge.",
-    },
-    {
-      id: 8,
-      name: "Deekshitha",
-      role: "Frontend Developer",
-      score: 65,
-      result: "Failed",
-      feedback:
-        "Needs stronger JavaScript and React fundamentals.",
-    },
-  ];
+  const [interviews, setInterviews] = useState([]);
+
+  useEffect(() => {
+  const fetchInterviews = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(
+        `${API_BASE}/api/interviews`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      console.log("Interviews:", data);
+
+      setInterviews(data.items || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  fetchInterviews();
+}, []);
 
   const filteredInterviews = interviews.filter(
-    (candidate) =>
-      candidate.name
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase()) ||
-      candidate.role
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase())
-  );
+  (candidate) =>
+    (candidate.candidate_name || "")
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase()) ||
+    (candidate.job_title || "")
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase())
+);
 
   return (
     <>
@@ -120,34 +75,30 @@ function InterviewResults() {
             <div style={cardStyle}>
               <h3>Passed</h3>
               <p>
-                {
-                  interviews.filter(
-                    (c) => c.result === "Passed"
-                  ).length
-                }
-              </p>
+{
+interviews.filter(i => i.status === "completed").length
+}
+</p>
             </div>
 
             <div style={cardStyle}>
-              <h3>Failed</h3>
-              <p>
-                {
-                  interviews.filter(
-                    (c) => c.result === "Failed"
-                  ).length
-                }
-              </p>
+              <h3>Inactive</h3>
+
+<p>
+{
+interviews.filter(i => i.status === "inactive").length
+}
+</p>
             </div>
 
             <div style={cardStyle}>
-              <h3>Pending</h3>
-              <p>
-                {
-                  interviews.filter(
-                    (c) => c.result === "Pending"
-                  ).length
-                }
-              </p>
+              <h3>Active</h3>
+
+<p>
+{
+interviews.filter(i => i.status === "active").length
+}
+</p>
             </div>
           </div>
 
@@ -193,53 +144,65 @@ function InterviewResults() {
             </thead>
 
             <tbody>
-              {filteredInterviews.map((candidate) => (
-                <tr key={candidate.id}>
-                  <td style={tableCell}>{candidate.id}</td>
-                  <td style={tableCell}>{candidate.name}</td>
-                  <td style={tableCell}>{candidate.role}</td>
-                  <td style={tableCell}>{candidate.score}</td>
+              {filteredInterviews.map((interview) =>(
+                <tr key={interview.id}>
+                  <td style={tableCell}>{interview.id.slice(0,8)}</td>
+                  <td style={tableCell}>
+  {interview.candidate_name}
+</td>
+                  <td style={tableCell}>
+  {interview.job_title || "N/A"}
+</td>
+                  <td style={tableCell}>
+  {interview.interview_score ?? "N/A"}
+</td>
 
                   <td style={tableCell}>
-                    <span
-                      style={{
-                        padding: "5px 10px",
-                        borderRadius: "15px",
-                        color: "white",
-                        backgroundColor:
-                          candidate.result === "Passed"
-                            ? "green"
-                            : candidate.result === "Failed"
-                            ? "red"
-                            : "orange",
-                      }}
-                    >
-                      {candidate.result}
-                    </span>
-                  </td>
+  <span
+    style={{
+      padding: "5px 10px",
+      borderRadius: "15px",
+      color: "white",
+      backgroundColor:
+        interview.status === "completed"
+          ? "green"
+          : "orange",
+    }}
+  >
+    {interview.status}
+  </span>
+</td>
 
                   <td style={tableCell}>
-                    <button
-                      onClick={() =>
-                        alert(
-                          `Candidate: ${candidate.name}
+  <button
+    style={viewBtn}
+    onClick={() =>
+      alert(
+`Candidate: ${interview.candidate_name}
 
-Role: ${candidate.role}
+Job: ${interview.job_title || "N/A"}
 
-Interview Score: ${candidate.score}
+Interview Score:
+${interview.interview_score ?? "N/A"}
 
-Feedback:
-${candidate.feedback}
+Status:
+${interview.status}
 
-Final Result:
-${candidate.result}`
-                        )
-                      }
-                      style={viewBtn}
-                    >
-                      View Feedback
-                    </button>
-                  </td>
+Started At:
+${new Date(interview.started_at).toLocaleString()}
+
+Completed At:
+${
+  interview.completed_at
+    ? new Date(interview.completed_at).toLocaleString()
+    : "In Progress"
+}`
+      )
+    }
+  >
+    View Details
+  </button>
+</td>
                 </tr>
               ))}
             </tbody>

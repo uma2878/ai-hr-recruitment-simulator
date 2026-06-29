@@ -1,7 +1,58 @@
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
+import { useState, useEffect } from "react";
+import { API_BASE } from "../config/api";
 
 function Analytics() {
+  const [skills, setSkills] = useState([]);
+  const [status, setStatus] = useState([]);
+  const [matchScores, setMatchScores] = useState([]);
+  const [performance, setPerformance] = useState({});
+
+  useEffect(() => {
+  const fetchAnalytics = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const headers = {
+        Authorization: `Bearer ${token}`,
+      };
+
+      const [
+        skillsRes,
+        statusRes,
+        matchRes,
+        performanceRes,
+      ] = await Promise.all([
+        fetch(`${API_BASE}/api/analytics/skills`, { headers }),
+        fetch(`${API_BASE}/api/analytics/status`, { headers }),
+        fetch(`${API_BASE}/api/analytics/match-scores`, { headers }),
+        fetch(`${API_BASE}/api/analytics/interview-performance`, {
+          headers,
+        }),
+      ]);
+
+      const skillsData = await skillsRes.json();
+      const statusData = await statusRes.json();
+      const matchData = await matchRes.json();
+      const performanceData = await performanceRes.json();
+
+      console.log("Skills:", skillsData);
+      console.log("Status:", statusData);
+      console.log("Match Scores:", matchData);
+      console.log("Performance:", performanceData);
+
+      setSkills(skillsData);
+      setStatus(statusData);
+      setMatchScores(matchData);
+      setPerformance(performanceData);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  fetchAnalytics();
+}, []);
   return (
     <>
       <Navbar />
@@ -25,24 +76,24 @@ function Analytics() {
             }}
           >
             <div style={cardStyle}>
-              <h3>Total Candidates</h3>
-              <p>120</p>
-            </div>
+  <h3>Total Skills</h3>
+  <p>{skills.length}</p>
+</div>
 
-            <div style={cardStyle}>
-              <h3>Selected</h3>
-              <p>45</p>
-            </div>
+<div style={cardStyle}>
+  <h3>Status Types</h3>
+  <p>{status.length}</p>
+</div>
 
-            <div style={cardStyle}>
-              <h3>Rejected</h3>
-              <p>55</p>
-            </div>
+<div style={cardStyle}>
+  <h3>Score Buckets</h3>
+  <p>{matchScores.length}</p>
+</div>
 
-            <div style={cardStyle}>
-              <h3>Pending</h3>
-              <p>20</p>
-            </div>
+<div style={cardStyle}>
+  <h3>Interview Performance</h3>
+  <p>{performance.average ?? "N/A"}</p>
+</div>
           </div>
 
           {/* Statistics Table */}
@@ -69,27 +120,43 @@ function Analytics() {
             </thead>
 
             <tbody>
-              <tr>
-                <td style={tableCell}>Total Resumes</td>
-                <td style={tableCell}>120</td>
-              </tr>
-
-              <tr>
-                <td style={tableCell}>Matched Candidates</td>
-                <td style={tableCell}>45</td>
-              </tr>
-
-              <tr>
-                <td style={tableCell}>Interviews Conducted</td>
-                <td style={tableCell}>20</td>
-              </tr>
-
-              <tr>
-                <td style={tableCell}>Final Selections</td>
-                <td style={tableCell}>12</td>
-              </tr>
-            </tbody>
+  {skills.map((skill, index) => (
+    <tr key={index}>
+      <td style={tableCell}>{skill.label}</td>
+      <td style={tableCell}>{skill.count}</td>
+    </tr>
+  ))}
+</tbody>
           </table>
+          <h2>Interview Distribution</h2>
+
+<table
+  style={{
+    width: "100%",
+    borderCollapse: "collapse",
+    backgroundColor: "white",
+    marginTop: "20px",
+  }}
+>
+  <thead>
+    <tr style={{ backgroundColor: "#1e293b", color: "white" }}>
+      <th style={tableHeader}>Category</th>
+      <th style={tableHeader}>Count</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {performance.distribution &&
+      Object.entries(performance.distribution).map(
+        ([key, value]) => (
+          <tr key={key}>
+            <td style={tableCell}>{key}</td>
+            <td style={tableCell}>{value}</td>
+          </tr>
+        )
+      )}
+  </tbody>
+</table>
 
           {/* Performance Section */}
           <h2>🚀 Performance Metrics</h2>

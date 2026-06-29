@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { API_BASE } from "../config/api";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
 
@@ -10,7 +11,33 @@ function JobDescription() {
 
   const [jobs, setJobs] = useState([]);
 
-  const handleSave = () => {
+  // Fetch Jobs
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+
+  const fetchJobs = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(`${API_BASE}/api/jobs`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      console.log("Jobs:", data);
+
+      setJobs(data.items || data);
+    } catch (error) {
+      console.error("Error fetching jobs:", error);
+    }
+  };
+
+  // Create Job
+  const handleSave = async () => {
     if (
       !jobTitle ||
       !skills ||
@@ -21,22 +48,82 @@ function JobDescription() {
       return;
     }
 
-    const newJob = {
-      id: jobs.length + 1,
-      title: jobTitle,
-      skills,
-      experience,
-      description,
-    };
+    try {
+      const token = localStorage.getItem("token");
 
-    setJobs([...jobs, newJob]);
+      const response = await fetch(`${API_BASE}/api/jobs`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title: jobTitle,
+          description: description,
+          required_skills: skills
+            .split(",")
+            .map((skill) => skill.trim()),
+          experience_years: Number(experience),
+          weight_resume: 0.3,
+          weight_match: 0.3,
+          weight_interview: 0.4,
+        }),
+      });
 
-    setJobTitle("");
-    setSkills("");
-    setExperience("");
-    setDescription("");
+      if (!response.ok) {
+        throw new Error("Failed to create job");
+      }
 
-    alert("Job Saved Successfully!");
+      const newJob = await response.json();
+
+      setJobs((prev) => [...prev, newJob]);
+
+      setJobTitle("");
+      setSkills("");
+      setExperience("");
+      setDescription("");
+
+      alert("Job created successfully!");
+    } catch (error) {
+      console.error(error);
+      alert("Failed to create job.");
+    }
+  };
+
+  // Delete Job
+  const handleDelete = async (jobId) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this job?"
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch(
+        `${API_BASE}/api/jobs/${jobId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Delete failed");
+      }
+
+      setJobs((prev) =>
+        prev.filter((job) => job.id !== jobId)
+      );
+
+      alert("Job deleted successfully.");
+    } catch (error) {
+      console.error(error);
+      alert("Failed to delete job.");
+    }
   };
 
   const handleClear = () => {
@@ -90,30 +177,38 @@ function JobDescription() {
               type="text"
               placeholder="Job Title"
               value={jobTitle}
-              onChange={(e) => setJobTitle(e.target.value)}
+              onChange={(e) =>
+                setJobTitle(e.target.value)
+              }
               style={inputStyle}
             />
 
             <input
               type="text"
-              placeholder="Required Skills"
+              placeholder="Required Skills (comma separated)"
               value={skills}
-              onChange={(e) => setSkills(e.target.value)}
+              onChange={(e) =>
+                setSkills(e.target.value)
+              }
               style={inputStyle}
             />
 
             <input
-              type="text"
-              placeholder="Experience Required"
+              type="number"
+              placeholder="Experience Required (Years)"
               value={experience}
-              onChange={(e) => setExperience(e.target.value)}
+              onChange={(e) =>
+                setExperience(e.target.value)
+              }
               style={inputStyle}
             />
 
             <textarea
               placeholder="Job Description"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) =>
+                setDescription(e.target.value)
+              }
               rows="5"
               style={textareaStyle}
             />
@@ -124,7 +219,7 @@ function JobDescription() {
                 style={saveBtn}
               >
                 Save Job
-               </button>
+              </button>
 
               <button
                 onClick={handleClear}
@@ -156,23 +251,61 @@ function JobDescription() {
                   <th style={tableHeader}>ID</th>
                   <th style={tableHeader}>Job Title</th>
                   <th style={tableHeader}>Skills</th>
-                  <th style={tableHeader}>Experience</th>
+                  <th style={tableHeader}>
+                    Experience
+                  </th>
+                  <th style={tableHeader}>
+                    Actions
+                  </th>
                 </tr>
               </thead>
 
               <tbody>
                 {jobs.map((job) => (
                   <tr key={job.id}>
-                    <td style={tableCell}>{job.id}</td>
-                    <td style={tableCell}>{job.title}</td>
-                    <td style={tableCell}>{job.skills}</td>
                     <td style={tableCell}>
-                      {job.experience}
+                      {job.id}
+                    </td>
+
+                    <td style={tableCell}>
+                      {job.title}
+                    </td>
+
+                    <td style={tableCell}>
+                      {job.required_skills?.join(
+                        ", "
+                      )}
+                    </td>
+
+                    <td style={tableCell}>
+                      {job.experience_years} Years
+                    </td>
+
+                    <td style={tableCell}>
+                      <button
+                        style={deleteBtn}
+                        onClick={() =>
+                          handleDelete(job.id)
+                        }
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+
+            {jobs.length === 0 && (
+              <p
+                style={{
+                  marginTop: "20px",
+                  color: "#666",
+                }}
+              >
+                No jobs found.
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -228,6 +361,15 @@ const clearBtn = {
   color: "white",
   border: "none",
   borderRadius: "6px",
+  cursor: "pointer",
+};
+
+const deleteBtn = {
+  padding: "8px 15px",
+  border: "none",
+  borderRadius: "6px",
+  backgroundColor: "#dc2626",
+  color: "white",
   cursor: "pointer",
 };
 
