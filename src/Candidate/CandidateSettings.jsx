@@ -65,19 +65,42 @@ function CandidateSettings({ darkMode, setDarkMode }) {
     setSaving(false);
   };
 
-  const updatePassword = () => {
+  const updatePassword = async () => {
     if (password.length < 6) { alert("Password should be at least 6 characters"); return; }
-    alert("✅ Password Updated Successfully");
-    setPassword("");
+    const { token, userId } = getTokenAndId();
+    if (!token) { alert("Not logged in"); return; }
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/change-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ user_id: userId, new_password: password }),
+      });
+      const data = await res.json();
+      if (res.ok) { alert("✅ Password Updated Successfully"); setPassword(""); }
+      else alert(data.detail || "Password update failed.");
+    } catch (e) { alert("Server error. Could not update password."); }
   };
 
   const markAllRead = () => setNotifications(notifications.map((item) => ({ ...item, read: true })));
 
-  const deleteAccount = () => {
-    if (!window.confirm("Delete account permanently?")) return;
-    localStorage.clear();
-    alert("✅ Account Deleted Successfully");
-    window.location.href = "/";
+  const deleteAccount = async () => {
+    if (!window.confirm("Delete account permanently? This cannot be undone.")) return;
+    const { token, userId } = getTokenAndId();
+    if (!token) { alert("Not logged in"); return; }
+    try {
+      const res = await fetch(`${API_BASE}/api/users/${userId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok || res.status === 204) {
+        localStorage.clear();
+        alert("Account deleted.");
+        window.location.href = "/";
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.detail || "Delete account failed.");
+      }
+    } catch (e) { alert("Server error. Could not delete account."); }
   };
 
   const unreadCount = notifications.filter((item) => !item.read).length;

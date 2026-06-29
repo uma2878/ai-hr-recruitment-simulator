@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE } from "../config/api";
+import { useAuth } from "../context/AuthContext";
 
 function AdminLogin() {
   const navigate = useNavigate();
+  const { setAuth } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,44 +31,22 @@ function AdminLogin() {
 
       const data = await response.json();
 
-      console.log("Admin Login Response:", data);
-
       if (!response.ok) {
         alert(data.detail || "Login Failed");
         return;
       }
 
-      localStorage.setItem(
-        "token",
-        data.access_token
-      );
-
-      localStorage.setItem(
-        "role",
-        data.user.role
-      );
-
-      localStorage.setItem(
-        "userName",
-        data.user.name
-      );
-
-      localStorage.setItem(
-        "userEmail",
-        data.user.email
-      );
-
-      if (
-        data.user.role === "admin" ||
-        data.user.role === "hr"
-      ) {
-        alert("Login Successful!");
-        navigate("/dashboard");
-      } else {
-        alert(
-          "This account does not have admin access."
-        );
+      if (data.user.role !== "admin" && data.user.role !== "hr") {
+        alert("This account does not have admin access.");
+        return;
       }
+
+      setAuth(data.access_token);
+      localStorage.setItem("role", data.user.role);
+      localStorage.setItem("userName", data.user.name);
+      localStorage.setItem("userEmail", data.user.email);
+
+      navigate("/dashboard");
     } catch (error) {
       console.error("Login Error:", error);
       alert("Server Error. Please try again.");

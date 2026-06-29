@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  console.log("Current Path:", location.pathname);
 
   const menuItems = [
     { name: "📊 Dashboard", path: "/dashboard" },

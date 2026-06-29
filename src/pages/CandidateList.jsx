@@ -32,9 +32,7 @@ function CandidateList() {
 
       const data = await response.json();
 
-      console.log("Candidates:", data);
-
-      setCandidates(data.items || []);
+      setCandidates(Array.isArray(data) ? data : (data.items || []));
     } catch (error) {
       console.error("Error fetching candidates:", error);
     }
@@ -81,10 +79,10 @@ function CandidateList() {
 
   const filteredCandidates = candidates.filter(
     (candidate) =>
-      candidate.name
+      (candidate.name || "")
         .toLowerCase()
         .includes(searchTerm.toLowerCase()) ||
-      candidate.email
+      (candidate.email || "")
         .toLowerCase()
         .includes(searchTerm.toLowerCase())
   );

@@ -98,9 +98,9 @@ function JobBrowse({ onApply }) {
               {job.company && <p style={{ margin: "0 0 4px", color: "#64748b" }}>🏢 {job.company}</p>}
               {job.location && <p style={{ margin: "0 0 4px", color: "#64748b" }}>📍 {job.location}</p>}
               {job.description && <p style={{ margin: "6px 0 0", fontSize: "13px", color: "#475569" }}>{job.description.slice(0, 120)}{job.description.length > 120 ? "..." : ""}</p>}
-              {job.skills_required?.length > 0 && (
+              {job.required_skills?.length > 0 && (
                 <p style={{ margin: "6px 0 0", fontSize: "12px" }}>
-                  <strong>Skills:</strong> {job.skills_required.join(", ")}
+                  <strong>Skills:</strong> {job.required_skills.join(", ")}
                 </p>
               )}
             </div>

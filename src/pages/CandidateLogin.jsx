@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE } from "../config/api";
+import { useAuth } from "../context/AuthContext";
 
 function CandidateLogin() {
   const navigate = useNavigate();
+  const { setAuth } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,34 +38,17 @@ function CandidateLogin() {
         return;
       }
 
-      // Save backend response data
-      localStorage.setItem(
-        "token",
-        data.access_token
-      );
-
-      localStorage.setItem(
-        "role",
-        data.user.role
-      );
-
-      localStorage.setItem(
-        "userName",
-        data.user.name
-      );
-
-      localStorage.setItem(
-        "userEmail",
-        data.user.email
-      );
-
-      alert("Login Successful!");
-
-      if (data.user.role === "candidate") {
-        navigate("/candidate-dashboard");
-      } else {
+      if (data.user.role !== "candidate") {
         alert("This account is not a candidate account.");
+        return;
       }
+
+      setAuth(data.access_token);
+      localStorage.setItem("role", data.user.role);
+      localStorage.setItem("userName", data.user.name);
+      localStorage.setItem("userEmail", data.user.email);
+
+      navigate("/candidate-dashboard");
     } catch (error) {
       console.error("Login Error:", error);
       alert("Server Error. Please try again.");

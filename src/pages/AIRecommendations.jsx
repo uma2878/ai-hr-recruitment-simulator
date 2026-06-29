@@ -26,8 +26,6 @@ function AIRecommendations() {
 
       const data = await response.json();
 
-      console.log("AI Recommendations:", data);
-
       setRecommendations(Array.isArray(data) ? data : (data.items || data.candidates || []));
     } catch (error) {
       console.error(error);
@@ -135,16 +133,16 @@ function AIRecommendations() {
                       borderRadius: "12px",
                       color: "white",
                       backgroundColor:
-                        candidate.final_score >= 80
+                        Number(candidate.final_score) >= 80
                           ? "green"
-                          : candidate.final_score >= 60
+                          : Number(candidate.final_score) >= 60
                           ? "orange"
                           : "red",
                     }}
                   >
-                    {candidate.final_score >= 80
+                    {Number(candidate.final_score) >= 80
                       ? "Highly Recommended"
-                      : candidate.final_score >= 60
+                      : Number(candidate.final_score) >= 60
                       ? "Recommended"
                       : "Consider Later"}
                   </span>

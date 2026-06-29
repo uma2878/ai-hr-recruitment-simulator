@@ -19,25 +19,26 @@ function AdminProfile() {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
+        if (!token) { setError("Not logged in."); setLoading(false); return; }
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const userId = payload.sub;
 
         const response = await fetch(
-          `${API_BASE}/api/admin/profile`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+          `${API_BASE}/api/profile/${userId}`,
+          { headers: { Authorization: `Bearer ${token}` } }
         );
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch profile");
-        }
+        if (response.status === 401) { localStorage.removeItem("token"); window.location.href = "/"; return; }
 
-        const data = await response.json();
+        const data = response.ok ? await response.json() : {};
 
-        console.log("Admin Profile:", data);
-
-        setAdmin(data);
+        setAdmin({
+          id: userId,
+          name: data.full_name || localStorage.getItem("userName") || "",
+          email: localStorage.getItem("userEmail") || "",
+          role: localStorage.getItem("role") || "",
+          created_at: data.created_at || "",
+        });
       } catch (err) {
         console.error(err);
         setError("Unable to load profile.");
@@ -153,7 +154,7 @@ function AdminProfile() {
                 <tr>
                   <td style={labelStyle}>Created At</td>
                   <td style={valueStyle}>
-                    {new Date(admin.created_at).toLocaleString()}
+                    {admin.created_at ? new Date(admin.created_at).toLocaleString() : "N/A"}
                   </td>
                 </tr>
               </tbody>

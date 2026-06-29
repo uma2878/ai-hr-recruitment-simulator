@@ -27,7 +27,11 @@ const [searchTerm, setSearchTerm] = useState("");
 const [searchResults, setSearchResults] = useState([]);
 const [searching, setSearching] = useState(false);
 
-const handleRedirect401 = () => { localStorage.removeItem("token"); window.location.href = "/"; };
+const handleRedirect401 = () => {
+  localStorage.removeItem("token"); localStorage.removeItem("role");
+  localStorage.removeItem("userName"); localStorage.removeItem("userEmail");
+  window.location.href = "/";
+};
 
 const fetchDashboardStats = async () => {
   if (!token || !userId) return;
@@ -55,8 +59,8 @@ const fetchSkillScore = async () => {
     if (res.status === 401) { handleRedirect401(); return; }
     if (!res.ok) return;
     const data = await res.json();
-    const total = data.strengths.length + data.gaps.length;
-    setSkillScore(total === 0 ? 0 : Math.round((data.strengths.length / total) * 100));
+    const total = (data.strengths?.length || 0) + (data.gaps?.length || 0);
+    setSkillScore(total === 0 ? 0 : Math.round(((data.strengths?.length || 0) / total) * 100));
   } catch (e) {}
 };
 
@@ -139,7 +143,7 @@ useEffect(() => {
       return <AIMockInterview />;
 
       case "assessment":
-  return <SkillAssessment />;   
+  return <SkillAssessment goBack={() => setPage("dashboard")} />;
 
      case "settings":
   return (
@@ -171,7 +175,7 @@ useEffect(() => {
               </div>
 
               <div className="card stat-card">
-                <h2>2</h2>
+                <h2>{dashboardStats.interviews}</h2>
                 <p>Interviews</p>
               </div>
             </div>
@@ -250,7 +254,7 @@ useEffect(() => {
       <div className="job-right">
         <span>{job.score}%</span>
 
-        <button>Apply</button>
+        <button onClick={() => setPage("browse")}>Apply</button>
       </div>
     </div>
   ))
@@ -340,10 +344,7 @@ useEffect(() => {
 
           <li
              className={page === "mockInterview" ? "active" : ""}
-             onClick={() =>  {
-              console.log("Mock Interview Clicked");
-              setPage("mockInterview")}
-             }
+             onClick={() => setPage("mockInterview")}
 >
                🤖 AI Mock Interview
           </li>

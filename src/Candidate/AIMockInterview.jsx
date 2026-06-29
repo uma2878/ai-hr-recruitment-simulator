@@ -3,7 +3,6 @@ import "./AIMockInterview.css";
 import { API_BASE } from "../config/api";
 
 function AIMockInterview() {
-  console.log("AIMockInterview Rendered");
   const videoRef = useRef(null);
   const [scores, setScores] = useState(null);
   const [submitted, setSubmitted] =useState(false);
@@ -42,12 +41,13 @@ function AIMockInterview() {
     useState([]);
 
   const token = localStorage.getItem("token");
-    useEffect(() => {
-    const saved =
-      JSON.parse(
-        localStorage.getItem("interviewHistory")
-      ) || [];
+  const historyKey = (() => {
+    try { return `interviewHistory_${JSON.parse(atob(token.split(".")[1])).sub}`; }
+    catch { return "interviewHistory"; }
+  })();
 
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem(historyKey)) || [];
     setHistory(saved);
   }, []);
     useEffect(() => {
@@ -80,7 +80,7 @@ function AIMockInterview() {
       interviewStarted
     ) {
 
-      submitCurrentAnswer();
+      submitCurrentAnswer(true);
 
     }
 
@@ -186,20 +186,15 @@ function AIMockInterview() {
     },
     body: JSON.stringify({
       role: role,
-      skills: [skills],
+      skills: skills.split(",").map(s => s.trim()).filter(Boolean),
     }),
   }
 );
 
         const data = await response.json();
 
-console.log("Status:", response.status);
-console.log("Response:", data);
-console.log("Detail:", data.detail);
-console.log(JSON.stringify(data, null, 2));
-
 if (!response.ok) {
-  alert(JSON.stringify(data));
+  alert(data.detail || "Failed to start interview. Please try again.");
   setLoading(false);
   return;
 }
@@ -240,8 +235,9 @@ if (!response.ok) {
         const data =
           await response.json();
 
+        const qs = data.questions || [];
         setQuestions(
-          data.questions || []
+          qs.map(q => typeof q === "string" ? q : (q.prompt || q.question || JSON.stringify(q)))
         );
 
       } catch (err) {
@@ -330,12 +326,10 @@ if (!response.ok) {
       ),
     };
   };
-    const submitCurrentAnswer = async () => {
+    const submitCurrentAnswer = async (fromTimer = false) => {
 
     if (!answers[currentQuestion]) {
-
-      alert("Please answer the question.");
-
+      if (!fromTimer) alert("Please answer the question.");
       return;
     }
 
@@ -364,8 +358,6 @@ if (!response.ok) {
         );
 
       const data = await response.json();
-
-console.log("Submit Response:", data);
 
       if (
         currentQuestion <
@@ -496,10 +488,7 @@ console.log("Submit Response:", data);
 
     setHistory(updatedHistory);
 
-    localStorage.setItem(
-      "interviewHistory",
-      JSON.stringify(updatedHistory)
-    );
+    localStorage.setItem(historyKey, JSON.stringify(updatedHistory));
 
     setSubmitted(true);
 

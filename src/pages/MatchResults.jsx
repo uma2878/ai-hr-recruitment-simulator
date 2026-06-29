@@ -16,7 +16,7 @@ const fetchMatches = async () => {
     const token = localStorage.getItem("token");
 
     const response = await fetch(
-      `${API_BASE}/api/match-results`,
+      `${API_BASE}/api/match`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -24,11 +24,10 @@ const fetchMatches = async () => {
       }
     );
 
+    if (response.status === 401) { localStorage.removeItem("token"); window.location.href = "/"; return; }
     const data = await response.json();
 
-    console.log("Match Results:", data);
-
-    setMatches(data.items || []);
+    setMatches(Array.isArray(data) ? data : (data.items || []));
   } catch (error) {
     console.error("Error fetching matches:", error);
   }
@@ -88,7 +87,7 @@ matches.length
 ?
 Math.round(
 matches.reduce(
-(sum,c)=>sum+c.final_score,
+(sum,c)=>sum+(Number(c.final_score)||0),
 0
 )/matches.length
 )
