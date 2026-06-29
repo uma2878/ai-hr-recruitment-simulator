@@ -96,6 +96,21 @@ function AdminLogin() {
             "0 4px 10px rgba(0,0,0,0.2)",
         }}
       >
+        <button
+          onClick={() => navigate("/")}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#2563eb",
+            cursor: "pointer",
+            fontSize: "14px",
+            marginBottom: "10px",
+            padding: 0,
+          }}
+        >
+          ← Back
+        </button>
+
         <h2
           style={{
             textAlign: "center",
