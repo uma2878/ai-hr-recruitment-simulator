@@ -1,12 +1,12 @@
 import { API_BASE } from "./config/api";
-
-console.log("Backend URL:", API_BASE);
 import { Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
 
 // Login Pages
 import RoleSelection from "./pages/RoleSelection";
 import AdminLogin from "./pages/AdminLogin";
 import CandidateLogin from "./pages/CandidateLogin";
+import Register from "./pages/Register";
 
 // Admin Pages
 import Dashboard from "./pages/Dashboard";
@@ -34,38 +34,41 @@ import CandidateSettings from "./Candidate/CandidateSettings";
 
 function App() {
   return (
-    <Routes>
-      {/* Role Selection */}
-      <Route path="/" element={<RoleSelection />} />
+    <AuthProvider>
+      <Routes>
+        {/* Role Selection */}
+        <Route path="/" element={<RoleSelection />} />
 
-      {/* Login Routes */}
-      <Route path="/admin-login" element={<AdminLogin />} />
-      <Route path="/candidate-login" element={<CandidateLogin />} />
+        {/* Auth Routes */}
+        <Route path="/admin-login" element={<AdminLogin />} />
+        <Route path="/candidate-login" element={<CandidateLogin />} />
+        <Route path="/register" element={<Register />} />
 
-      {/* Admin Dashboard */}
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/candidate-list" element={<CandidateList />} />
-      <Route path="/view-resumes" element={<ViewResumes />} />
-      <Route path="/job-description" element={<JobDescription />} />
-      <Route path="/match-results" element={<MatchResults />} />
-      <Route path="/ai-recommendations" element={<AIRecommendations />} />
-      <Route path="/interview-results" element={<InterviewResults />} />
-      <Route path="/analytics" element={<Analytics />} />
-      <Route path="/settings" element={<Settings />} />
-      <Route path="/admin-profile" element={<AdminProfile />} />
+        {/* Admin Dashboard */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/candidate-list" element={<CandidateList />} />
+        <Route path="/view-resumes" element={<ViewResumes />} />
+        <Route path="/job-description" element={<JobDescription />} />
+        <Route path="/match-results" element={<MatchResults />} />
+        <Route path="/ai-recommendations" element={<AIRecommendations />} />
+        <Route path="/interview-results" element={<InterviewResults />} />
+        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/admin-profile" element={<AdminProfile />} />
 
-      {/* Candidate Dashboard */}
-      <Route path="/candidate-dashboard" element={<CandidateDashboard />}/>
-      <Route path="/candidate-profile" element={<CandidateProfile />} />
-      <Route path="/resume-upload" element={<ResumeUpload />} />
-      <Route path="/skill-analysis" element={<AISkillAnalysis />} />
-      <Route path="/mock-interview" element={<AIMockInterview />} />
-      <Route path="/skill-assessment" element={<SkillAssessment />} />
-      <Route path="/job-recommendations" element={<JobRecommendations />}/>
-      <Route path="/interview-status" element={<InterviewStatus />}/>
-      <Route path="/applications" element={<Applications />} />
-      <Route path="/candidate-settings" element={<CandidateSettings />} />
-    </Routes>
+        {/* Candidate Dashboard */}
+        <Route path="/candidate-dashboard" element={<CandidateDashboard />} />
+        <Route path="/candidate-profile" element={<CandidateProfile />} />
+        <Route path="/resume-upload" element={<ResumeUpload />} />
+        <Route path="/skill-analysis" element={<AISkillAnalysis />} />
+        <Route path="/mock-interview" element={<AIMockInterview />} />
+        <Route path="/skill-assessment" element={<SkillAssessment />} />
+        <Route path="/job-recommendations" element={<JobRecommendations />} />
+        <Route path="/interview-status" element={<InterviewStatus />} />
+        <Route path="/applications" element={<Applications />} />
+        <Route path="/candidate-settings" element={<CandidateSettings />} />
+      </Routes>
+    </AuthProvider>
   );
 }
 

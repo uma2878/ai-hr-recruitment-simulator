@@ -156,12 +156,21 @@ function CandidateLogin() {
             border: "none",
             borderRadius: "8px",
             cursor: "pointer",
+            marginBottom: "12px",
           }}
         >
-          {loading
-            ? "Logging in..."
-            : "Login"}
+          {loading ? "Logging in..." : "Login"}
         </button>
+
+        <p style={{ textAlign: "center", fontSize: "13px", color: "#64748b", margin: 0 }}>
+          Don't have an account?{" "}
+          <span
+            onClick={() => navigate("/register")}
+            style={{ color: "#2563eb", cursor: "pointer", fontWeight: "600" }}
+          >
+            Register
+          </span>
+        </p>
       </div>
     </div>
   );
