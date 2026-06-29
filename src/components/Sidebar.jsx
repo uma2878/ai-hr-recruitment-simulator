@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  console.log("Current Path:", location.pathname);
 
   const menuItems = [
     { name: "📊 Dashboard", path: "/dashboard" },
@@ -50,7 +49,7 @@ function Sidebar() {
 
               borderLeft:
                 location.pathname === item.path
-                  ? "8px solid navy blue"
+                  ? "8px solid #1e3a8a"
                   : "8px solid transparent",
 
               fontWeight:

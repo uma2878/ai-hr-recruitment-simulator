@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { API_BASE } from "../config/api";
 function ResumeUpload({ goBack }) {
-  console.log("ResumeUpload component rendered");
   const [file, setFile] = useState(null);
 const [preview, setPreview] = useState("");
 const [resume, setResume] = useState(null);
@@ -73,7 +72,7 @@ useEffect(() => {
     const formData = new FormData();
     formData.append("file", selectedFile);
     const response = await fetch(
-      `${API_BASE}/api/resumes/upload`,
+      `${API_BASE}/api/resume/upload`,
       {
         method: "POST",
         headers: {
@@ -104,7 +103,7 @@ useEffect(() => {
     const token = localStorage.getItem("token");
 
     const response = await fetch(
-      `${API_BASE}/api/resume/${resume.id}`,
+      `${API_BASE}/api/resumes/${resume.id}`,
       {
         method: "DELETE",
         headers: {
@@ -140,7 +139,7 @@ useEffect(() => {
       {loading && <p>Loading resume...</p>}
       {uploading && <p>Uploading resume...</p>}
 {message && (
-  <p style={{ color: "green" }}>
+  <p style={{ color: message.toLowerCase().includes("fail") || message.toLowerCase().includes("error") ? "#dc2626" : "#16a34a" }}>
     {message}
   </p>
 )}

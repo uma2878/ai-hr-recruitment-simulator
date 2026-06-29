@@ -34,9 +34,7 @@ function Analytics() {
         ]);
 
         responses.forEach((res) => {
-          if (!res.ok) {
-            throw new Error(`API Error: ${res.status}`);
-          }
+          if (res.status === 401) { localStorage.removeItem("token"); window.location.href = "/"; }
         });
 
         const [
@@ -46,15 +44,20 @@ function Analytics() {
           performanceData,
         ] = await Promise.all(responses.map((res) => res.json()));
 
-        console.log("Skills:", skillsData);
-        console.log("Status:", statusData);
-        console.log("Match Scores:", matchData);
-        console.log("Performance:", performanceData);
+        const normalizeLabels = (d) =>
+          Array.isArray(d)
+            ? d
+            : (d?.labels || []).map((label, i) => ({ label, count: (d?.data || [])[i] || 0 }));
 
-        setSkills(skillsData);
-        setStatus(statusData);
-        setMatchScores(matchData);
-        setPerformance(performanceData);
+        setSkills(normalizeLabels(skillsData));
+        setStatus(normalizeLabels(statusData));
+        setMatchScores(normalizeLabels(matchData).map((item) => ({ bucket: item.label || item.bucket, count: item.count })));
+        setPerformance({
+          average: performanceData?.average ?? 0,
+          distribution: Array.isArray(performanceData?.distribution)
+            ? performanceData.distribution
+            : normalizeLabels(performanceData).map((item) => ({ bucket: item.label || item.bucket, count: item.count })),
+        });
       } catch (err) {
         console.error(err);
         setError("Failed to load analytics.");

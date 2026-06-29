@@ -68,10 +68,6 @@ function Dashboard() {
           responses.map((res) => res.json())
         );
 
-        console.log("Summary:", summaryData);
-        console.log("Activity:", activityData);
-        console.log("Progress:", progressData);
-
         setSummary(summaryData);
         setActivity(activityData);
         setProgress(progressData);
@@ -121,9 +117,9 @@ function Dashboard() {
   /* ---------- Chart Data ---------- */
 
   const progressChart = progress.map((item) => ({
-    name:
-      item.stage.charAt(0).toUpperCase() +
-      item.stage.slice(1),
+    name: item.stage
+      ? item.stage.charAt(0).toUpperCase() + item.stage.slice(1)
+      : "Unknown",
     value: item.count,
   }));
 

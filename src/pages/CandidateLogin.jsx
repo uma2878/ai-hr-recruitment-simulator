@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE } from "../config/api";
+import { useAuth } from "../context/AuthContext";
 
 function CandidateLogin() {
   const navigate = useNavigate();
+  const { setAuth } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,34 +38,17 @@ function CandidateLogin() {
         return;
       }
 
-      // Save backend response data
-      localStorage.setItem(
-        "token",
-        data.access_token
-      );
-
-      localStorage.setItem(
-        "role",
-        data.user.role
-      );
-
-      localStorage.setItem(
-        "userName",
-        data.user.name
-      );
-
-      localStorage.setItem(
-        "userEmail",
-        data.user.email
-      );
-
-      alert("Login Successful!");
-
-      if (data.user.role === "candidate") {
-        navigate("/candidate-dashboard");
-      } else {
+      if (data.user.role !== "candidate") {
         alert("This account is not a candidate account.");
+        return;
       }
+
+      setAuth(data.access_token);
+      localStorage.setItem("role", data.user.role);
+      localStorage.setItem("userName", data.user.name);
+      localStorage.setItem("userEmail", data.user.email);
+
+      navigate("/candidate-dashboard");
     } catch (error) {
       console.error("Login Error:", error);
       alert("Server Error. Please try again.");
@@ -93,6 +78,21 @@ function CandidateLogin() {
             "0 4px 10px rgba(0,0,0,0.2)",
         }}
       >
+        <button
+          onClick={() => navigate("/")}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#2563eb",
+            cursor: "pointer",
+            fontSize: "14px",
+            marginBottom: "10px",
+            padding: 0,
+          }}
+        >
+          ← Back
+        </button>
+
         <h2
           style={{
             textAlign: "center",
@@ -141,12 +141,21 @@ function CandidateLogin() {
             border: "none",
             borderRadius: "8px",
             cursor: "pointer",
+            marginBottom: "12px",
           }}
         >
-          {loading
-            ? "Logging in..."
-            : "Login"}
+          {loading ? "Logging in..." : "Login"}
         </button>
+
+        <p style={{ textAlign: "center", fontSize: "13px", color: "#64748b", margin: 0 }}>
+          Don't have an account?{" "}
+          <span
+            onClick={() => navigate("/register")}
+            style={{ color: "#2563eb", cursor: "pointer", fontWeight: "600" }}
+          >
+            Register
+          </span>
+        </p>
       </div>
     </div>
   );

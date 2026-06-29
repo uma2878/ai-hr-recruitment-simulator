@@ -24,9 +24,7 @@ function InterviewResults() {
 
       const data = await response.json();
 
-      console.log("Interviews:", data);
-
-      setInterviews(data.items || []);
+      setInterviews(Array.isArray(data) ? data : (data.items || []));
     } catch (error) {
       console.error(error);
     }
@@ -146,7 +144,7 @@ interviews.filter(i => i.status === "active").length
             <tbody>
               {filteredInterviews.map((interview) =>(
                 <tr key={interview.id}>
-                  <td style={tableCell}>{interview.id.slice(0,8)}</td>
+                  <td style={tableCell}>{String(interview.id).slice(0,8)}</td>
                   <td style={tableCell}>
   {interview.candidate_name}
 </td>

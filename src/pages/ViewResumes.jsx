@@ -24,10 +24,7 @@ function ViewResumes() {
 
       const data = await response.json();
 
-      console.log("Resumes:", data);
-      console.log(data.items[0]);
-
-      setResumes(data.items || data);
+      setResumes(Array.isArray(data) ? data : (data.items || []));
     } catch (error) {
       console.error(error);
     }
@@ -163,11 +160,6 @@ resumes.filter(
 </p>
 
 <p>
-  <strong>Resume Score:</strong>{" "}
-  {resume.resume_score}
-</p>
-
-<p>
   <strong>Skills:</strong>{" "}
   {resume.parsed_data?.skills?.join(", ") || "N/A"}
 </p>
@@ -216,12 +208,18 @@ resume.parse_status === "done"
 
   <button
     style={downloadBtn}
-    onClick={() =>
-      window.open(
-        `${API_BASE}/api/resumes/download/${resume.id}`,
-        "_blank"
-      )
-    }
+    onClick={async () => {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${API_BASE}/api/resumes/download/${resume.id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) { alert("Download failed"); return; }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = `resume_${resume.id}.pdf`; a.click();
+      URL.revokeObjectURL(url);
+    }}
   >
     Download
   </button>

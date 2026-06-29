@@ -1,116 +1,80 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { API_BASE } from "../config/api";
 import "./AISkillAnalysis.css";
 
 function AISkillAnalysis() {
+  const [analysis, setAnalysis] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const analysis = {
-    skillScore: 85,
-    employabilityScore: 80,
+  useEffect(() => {
+    const fetchAnalysis = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) { setError("Not logged in"); setLoading(false); return; }
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        const userId = payload.sub;
 
-    skillsDetected: [
-      "React",
-      "JavaScript",
-      "Java",
-      "SQL",
-      "HTML",
-      "CSS"
-    ],
+        const res = await fetch(`${API_BASE}/api/ai/skill-analysis/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.status === 401) { localStorage.removeItem("token"); window.location.href = "/"; return; }
+        if (!res.ok) throw new Error("Failed to load");
+        const data = await res.json();
+        setAnalysis(data);
+      } catch (e) {
+        setError("Could not load skill analysis. Upload a resume first.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAnalysis();
+  }, []);
 
-    strengths: [
-      "Problem Solving",
-      "Frontend Development",
-      "Communication",
-      "Team Collaboration"
-    ],
-
-    improvementAreas: [
-      "Node.js",
-      "System Design",
-      "Cloud Computing"
-    ],
-
-    recommendedRoles: [
-      "Frontend Developer",
-      "React Developer",
-      "Java Developer",
-      "Software Engineer",
-      "UI Developer"
-    ]
-  };
+  if (loading) return <div className="analysis-container"><p>Loading AI Skill Analysis...</p></div>;
+  if (error)   return <div className="analysis-container"><p style={{color:"#ef4444"}}>{error}</p></div>;
 
   return (
     <div className="analysis-container">
-
       <h2>🤖 AI Skill Analysis</h2>
 
-      {/* SCORE CARDS */}
-
       <div className="score-grid">
-
         <div className="score-card">
-          <h3>Skill Score</h3>
-          <h1>{analysis.skillScore}%</h1>
-        </div>
-
-        <div className="score-card">
-          <h3>Employability Score</h3>
-          <h1>{analysis.employabilityScore}%</h1>
-        </div>
-
-      </div>
-
-      {/* SKILLS DETECTED */}
-
-      <div className="analysis-card">
-        <h3>🛠️ Skills Detected</h3>
-
-        <div className="tags">
-          {analysis.skillsDetected.map((skill, index) => (
-            <span key={index} className="tag">
-              {skill}
-            </span>
-          ))}
+          <h3>Skill Levels</h3>
+          {analysis.skill_levels && Object.keys(analysis.skill_levels).length > 0 ? (
+            Object.entries(analysis.skill_levels).map(([skill, level]) => (
+              <p key={skill}><b>{skill}:</b> {level}</p>
+            ))
+          ) : (
+            <p>No skill data yet</p>
+          )}
         </div>
       </div>
-
-      {/* STRENGTHS */}
 
       <div className="analysis-card">
         <h3>💪 Strengths</h3>
-
-        <ul>
-          {analysis.strengths.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
+        {analysis.strengths?.length > 0 ? (
+          <div className="tags">
+            {analysis.strengths.map((s, i) => <span key={i} className="tag">{s}</span>)}
+          </div>
+        ) : <p>No strengths data yet</p>}
       </div>
-
-      {/* IMPROVEMENT */}
 
       <div className="analysis-card">
-        <h3>📈 Improvement Areas</h3>
-
-        <ul>
-          {analysis.improvementAreas.map((item, index) => (
-            <li key={index}>{item}</li>
-          ))}
-        </ul>
+        <h3>📈 Skill Gaps</h3>
+        {analysis.gaps?.length > 0 ? (
+          <ul>{analysis.gaps.map((g, i) => <li key={i}>{g}</li>)}</ul>
+        ) : <p>No gaps identified</p>}
       </div>
-
-      {/* ROLES */}
 
       <div className="analysis-card">
-        <h3>🎯 Recommended Roles</h3>
-
-        <ul>
-          {analysis.recommendedRoles.map((role, index) => (
-            <li key={index}>{role}</li>
-          ))}
-        </ul>
+        <h3>🎯 Recommendations</h3>
+        {analysis.recommendations?.length > 0 ? (
+          <ul>{analysis.recommendations.map((r, i) => <li key={i}>{r}</li>)}</ul>
+        ) : <p>No recommendations yet</p>}
       </div>
-
     </div>
   );
 }
 
-export default AISkillAnalysis
+export default AISkillAnalysis;

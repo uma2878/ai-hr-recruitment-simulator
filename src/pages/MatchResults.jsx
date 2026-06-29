@@ -16,7 +16,7 @@ const fetchMatches = async () => {
     const token = localStorage.getItem("token");
 
     const response = await fetch(
-      `${API_BASE}/api/match-results`,
+      `${API_BASE}/api/match`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -24,11 +24,10 @@ const fetchMatches = async () => {
       }
     );
 
+    if (response.status === 401) { localStorage.removeItem("token"); window.location.href = "/"; return; }
     const data = await response.json();
 
-    console.log("Match Results:", data);
-
-    setMatches(data.items || []);
+    setMatches(Array.isArray(data) ? data : (data.items || []));
   } catch (error) {
     console.error("Error fetching matches:", error);
   }
@@ -36,10 +35,10 @@ const fetchMatches = async () => {
 
   const filteredMatches = matches.filter(
   (candidate) =>
-    candidate.candidate_name
+    (candidate.candidate_name || "")
       .toLowerCase()
       .includes(searchTerm.toLowerCase()) ||
-    candidate.job_title
+    (candidate.job_title || "")
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
 );
@@ -66,70 +65,26 @@ const fetchMatches = async () => {
           >
             <div style={cardStyle}>
               <h3>Recommended</h3>
-<p>
-{
-matches.filter(
-(c)=>c.recommendation==="Recommended"
-).length
-}
-</p>
-<h3>Applied</h3>
-<p>
-{
-matches.filter(
-(c)=>c.status==="applied"
-).length
-}
-</p>
-<h3>Avg Final Score</h3>
-<p>
-{
-matches.length
-?
-Math.round(
-matches.reduce(
-(sum,c)=>sum+c.final_score,
-0
-)/matches.length
-)
-:0
-}
-%
-</p>
+              <p>{matches.filter((c) => c.recommendation === "Recommended").length}</p>
             </div>
 
             <div style={cardStyle}>
-              <h3>Excellent</h3>
+              <h3>Applied</h3>
+              <p>{matches.filter((c) => c.status === "applied").length}</p>
+            </div>
+
+            <div style={cardStyle}>
+              <h3>Avg Final Score</h3>
               <p>
-                {
-                  matches.filter(
-                    (c) => c.status === "Excellent"
-                  ).length
-                }
+                {matches.length
+                  ? Math.round(matches.reduce((sum, c) => sum + (Number(c.final_score) || 0), 0) / matches.length)
+                  : 0}%
               </p>
             </div>
 
             <div style={cardStyle}>
-              <h3>Good</h3>
-              <p>
-                {
-                  matches.filter(
-                    (c) => c.status === "Good"
-                  ).length
-                }
-              </p>
-            </div>
-
-            <div style={cardStyle}>
-              <h3>Needs Improvement</h3>
-              <p>
-                {
-                  matches.filter(
-                    (c) =>
-                      c.status === "Needs Improvement"
-                  ).length
-                }
-              </p>
+              <h3>Total Matches</h3>
+              <p>{matches.length}</p>
             </div>
           </div>
 

@@ -1,19 +1,33 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { API_BASE } from "../config/api";
+import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const [search, setSearch] = useState("");
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     const confirmLogout = window.confirm(
       "Are you sure you want to logout?"
     );
+    if (!confirmLogout) return;
 
-    if (confirmLogout) {
-      navigate("/admin-login");
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        await fetch(`${API_BASE}/api/auth/logout`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch (_) {}
     }
+    localStorage.removeItem("role");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userEmail");
+    logout();
   };
 
   return (

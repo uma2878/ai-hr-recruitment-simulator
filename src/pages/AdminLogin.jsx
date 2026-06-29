@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE } from "../config/api";
+import { useAuth } from "../context/AuthContext";
 
 function AdminLogin() {
   const navigate = useNavigate();
+  const { setAuth } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,45 +30,24 @@ function AdminLogin() {
       );
 
       const data = await response.json();
-
-      console.log("Admin Login Response:", data);
+      console.log("Login Response:", data);
 
       if (!response.ok) {
         alert(data.detail || "Login Failed");
         return;
       }
 
-      localStorage.setItem(
-        "token",
-        data.access_token
-      );
-
-      localStorage.setItem(
-        "role",
-        data.user.role
-      );
-
-      localStorage.setItem(
-        "userName",
-        data.user.name
-      );
-
-      localStorage.setItem(
-        "userEmail",
-        data.user.email
-      );
-
-      if (
-        data.user.role === "admin" ||
-        data.user.role === "hr"
-      ) {
-        alert("Login Successful!");
-        navigate("/dashboard");
-      } else {
-        alert(
-          "This account does not have admin access."
-        );
+      if (data.user.role !== "admin" && data.user.role !== "hr") {
+        alert("This account does not have admin access.");
+        return;
       }
+
+      setAuth(data.access_token);
+      localStorage.setItem("role", data.user.role);
+      localStorage.setItem("userName", data.user.name);
+      localStorage.setItem("userEmail", data.user.email);
+
+      navigate("/dashboard");
     } catch (error) {
       console.error("Login Error:", error);
       alert("Server Error. Please try again.");
@@ -96,6 +77,21 @@ function AdminLogin() {
             "0 4px 10px rgba(0,0,0,0.2)",
         }}
       >
+        <button
+          onClick={() => navigate("/")}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#2563eb",
+            cursor: "pointer",
+            fontSize: "14px",
+            marginBottom: "10px",
+            padding: 0,
+          }}
+        >
+          ← Back
+        </button>
+
         <h2
           style={{
             textAlign: "center",
@@ -143,13 +139,22 @@ function AdminLogin() {
             color: "white",
             border: "none",
             borderRadius: "8px",
+             cursor: "pointer",
             cursor: "pointer",
           }}
         >
-          {loading
-            ? "Logging in..."
-            : "Login"}
+          {loading ? "Logging in..." : "Login"}
         </button>
+
+        <p style={{ textAlign: "center", fontSize: "13px", color: "#64748b", margin: 0 }}>
+          Don't have an account?{" "}
+          <span
+            onClick={() => navigate("/register")}
+            style={{ color: "#2563eb", cursor: "pointer", fontWeight: "600" }}
+          >
+            Register
+          </span>
+        </p>
       </div>
     </div>
   );

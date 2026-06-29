@@ -1,194 +1,109 @@
-import { useNavigate } from "react-router-dom";
 import { API_BASE } from "../config/api";
+import { useAuth } from "../context/AuthContext";
 import React, { useState, useEffect } from "react";
 import "./CandidateDashboard.css";
 import CandidateProfile from "./CandidateProfile";
 import AISkillAnalysis from "./AISkillAnalysis";
 import ResumeUpload from "./ResumeUpload";
 import JobRecommendations from "./JobRecommendations";
+import JobBrowse from "./JobBrowse";
 import Applications from "./Applications";
 import AIMockInterview from "./AIMockInterview";
 import InterviewStatus from "./InterviewStatus";
 import SkillAssessment from "./SkillAssessment";
 import CandidateSettings from "./CandidateSettings";
+
 function CandidateDashboard() {
-  const navigate = useNavigate();
-  const handleLogout = () => {
-  const confirmLogout = window.confirm(
-    "Are you sure you want to logout?"
-  );
+  const { token, userId, logout } = useAuth();
+  const [page, setPage] = useState("dashboard");
+  const [profilePic, setProfilePic] = useState(null);
+  const [profileName, setProfileName] = useState("Candidate");
+  const [darkMode, setDarkMode] = useState(false);
 
-  if (confirmLogout) {
-    navigate("/candidate-login");
-  }
-};
-const [page, setPage] = useState("dashboard");
-
-const [profilePic, setProfilePic] = useState(null);
-const [profileName, setProfileName] = useState("Candidate");
-const [profileData, setProfileData] = useState(null);
-
-const [resumeName, setResumeName] = useState(null);
-const [resumeURL, setResumeURL] = useState(null);
-
-const [searchTerm, setSearchTerm] = useState("");
-const [searchResults, setSearchResults] = useState([]);
-
-const [darkMode, setDarkMode] = useState(
-  JSON.parse(localStorage.getItem("settings"))?.darkMode || false
-);
-
-const [dashboardStats, setDashboardStats] = useState({
-  applications: 0,
-  underReview: 0,
-  shortlisted: 0,
-  interviews: 0,
-});
+const [dashboardStats, setDashboardStats] = useState({ applications: 0, underReview: 0, shortlisted: 0, interviews: 0 });
 const [skillScore, setSkillScore] = useState(0);
 const [recommendedJobs, setRecommendedJobs] = useState([]);
-  const fetchDashboardStats = async () => {
+const [searchTerm, setSearchTerm] = useState("");
+const [searchResults, setSearchResults] = useState([]);
+const [searching, setSearching] = useState(false);
+
+const handleRedirect401 = () => {
+  localStorage.removeItem("token"); localStorage.removeItem("role");
+  localStorage.removeItem("userName"); localStorage.removeItem("userEmail");
+  window.location.href = "/";
+};
+
+const fetchDashboardStats = async () => {
+  if (!token || !userId) return;
   try {
-    const token = localStorage.getItem("token");
-
-if (!token) return;
-
-// Decode the JWT payload
-const payload = JSON.parse(atob(token.split(".")[1]));
-const userId = payload.sub;
-
-console.log("Token:", token);
-console.log("User ID:", userId);
-
     const [applicationsRes, interviewsRes] = await Promise.all([
-      fetch(`${API_BASE}/api/applications/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }),
-      fetch(`${API_BASE}/api/interviews/status/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }),
+      fetch(`${API_BASE}/api/applications/${userId}`, { headers: { Authorization: `Bearer ${token}` } }),
+      fetch(`${API_BASE}/api/interviews/status/${userId}`, { headers: { Authorization: `Bearer ${token}` } }),
     ]);
-
-    const applications = applicationsRes.ok
-      ? await applicationsRes.json()
-      : [];
-
-    const interviews = interviewsRes.ok
-      ? await interviewsRes.json()
-      : [];
-      console.log("Applications:", applications);
-console.log("Interviews:", interviews);
-
+    if (applicationsRes.status === 401 || interviewsRes.status === 401) { handleRedirect401(); return; }
+    const applications = applicationsRes.ok ? await applicationsRes.json() : [];
+    const interviews = interviewsRes.ok ? await interviewsRes.json() : [];
     setDashboardStats({
       applications: applications.length,
-      underReview: applications.filter(
-  (app) => app.status?.toLowerCase() === "under review"
-).length,
-
-shortlisted: applications.filter(
-  (app) => app.status?.toLowerCase() === "shortlisted"
-).length,
+      underReview: applications.filter(a => a.status?.toLowerCase() === "under review").length,
+      shortlisted: applications.filter(a => a.status?.toLowerCase() === "shortlisted").length,
       interviews: interviews.length,
     });
-  } catch (error) {
-    console.error("Error fetching dashboard stats:", error);
-  }
+  } catch (e) {}
 };
+
 const fetchSkillScore = async () => {
+  if (!token || !userId) return;
   try {
-    const token = localStorage.getItem("token");
-
-    if (!token) return;
-
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    const userId = payload.sub;
-
-    const response = await fetch(
-      `${API_BASE}/api/ai/skill-analysis/${userId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    if (!response.ok) return;
-
-    const data = await response.json();
-
-    const total =
-      data.strengths.length + data.gaps.length;
-
-    const score =
-      total === 0
-        ? 0
-        : Math.round(
-            (data.strengths.length / total) * 100
-          );
-
-    setSkillScore(score);
-
-  } catch (error) {
-    console.error("Skill Score Error:", error);
-  }
+    const res = await fetch(`${API_BASE}/api/ai/skill-analysis/${userId}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (res.status === 401) { handleRedirect401(); return; }
+    if (!res.ok) return;
+    const data = await res.json();
+    const total = (data.strengths?.length || 0) + (data.gaps?.length || 0);
+    setSkillScore(total === 0 ? 0 : Math.round(((data.strengths?.length || 0) / total) * 100));
+  } catch (e) {}
 };
+
 const fetchRecommendedJobs = async () => {
+  if (!token || !userId) return;
   try {
-    const token = localStorage.getItem("token");
+    const res = await fetch(`${API_BASE}/api/jobs/recommendations/${userId}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (res.status === 401) { handleRedirect401(); return; }
+    if (!res.ok) return;
+    setRecommendedJobs(await res.json());
+  } catch (e) {}
+};
 
-    if (!token) return;
+const fetchProfile = async () => {
+  if (!token || !userId) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/profile/${userId}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (res.status === 401) { handleRedirect401(); return; }
+    if (res.ok) {
+      const data = await res.json();
+      if (data.full_name) setProfileName(data.full_name);
+    }
+  } catch (e) {}
+};
 
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    const userId = payload.sub;
+const fetchSettings = async () => {
+  if (!token || !userId) return;
+  try {
+    const res = await fetch(`${API_BASE}/api/settings/${userId}`, { headers: { Authorization: `Bearer ${token}` } });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.preferences?.darkMode !== undefined) setDarkMode(data.preferences.darkMode);
+    }
+  } catch (e) {}
+};
 
-    const response = await fetch(
-      `${API_BASE}/api/jobs/recommendations/${userId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    if (!response.ok) return;
-
-    const data = await response.json();
-
-    setRecommendedJobs(data);
-
-  } catch (error) {
-    console.error("Recommendation Error:", error);
-  }
-}; 
-  useEffect(() => {
-  const settings =
-    JSON.parse(
-      localStorage.getItem("settings")
-    );
-
-  if (settings) {
-    setDarkMode(settings.darkMode);
-  }
-}, []);
 useEffect(() => {
   fetchDashboardStats();
   fetchSkillScore();
   fetchRecommendedJobs();
-}, []);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("profileData");
-
-    if (saved) {
-      const data = JSON.parse(saved);
-
-      setProfileData(data);
-      setProfileName(data.fullName || "Candidate");
-    }
-  }, []);
+  fetchProfile();
+  fetchSettings();
+}, [token, userId]);
 
   const handleUpload = (e) => {
     const file = e.target.files?.[0];
@@ -212,7 +127,10 @@ useEffect(() => {
   return <ResumeUpload goBack={() => setPage("dashboard")} />;
 
       case "jobs":
-  return <JobRecommendations />;
+        return <JobRecommendations />;
+
+      case "browse":
+        return <JobBrowse onApply={fetchDashboardStats} />;
 
        
     case "applications":
@@ -225,7 +143,7 @@ useEffect(() => {
       return <AIMockInterview />;
 
       case "assessment":
-  return <SkillAssessment />;   
+  return <SkillAssessment goBack={() => setPage("dashboard")} />;
 
      case "settings":
   return (
@@ -257,7 +175,7 @@ useEffect(() => {
               </div>
 
               <div className="card stat-card">
-                <h2>2</h2>
+                <h2>{dashboardStats.interviews}</h2>
                 <p>Interviews</p>
               </div>
             </div>
@@ -336,7 +254,7 @@ useEffect(() => {
       <div className="job-right">
         <span>{job.score}%</span>
 
-        <button>Apply</button>
+        <button onClick={() => setPage("browse")}>Apply</button>
       </div>
     </div>
   ))
@@ -390,6 +308,13 @@ useEffect(() => {
           </li>
 
           <li
+            className={page === "browse" ? "active" : ""}
+            onClick={() => setPage("browse")}
+          >
+            🔍 Browse Jobs
+          </li>
+
+          <li
             className={page === "jobs" ? "active" : ""}
             onClick={() => setPage("jobs")}
           >
@@ -419,10 +344,7 @@ useEffect(() => {
 
           <li
              className={page === "mockInterview" ? "active" : ""}
-             onClick={() =>  {
-              console.log("Mock Interview Clicked");
-              setPage("mockInterview")}
-             }
+             onClick={() => setPage("mockInterview")}
 >
                🤖 AI Mock Interview
           </li>
@@ -437,8 +359,15 @@ useEffect(() => {
           <li
             className={page === "settings" ? "active" : ""}
             onClick={() => setPage("settings")}
->
-              ⚙️ Settings
+          >
+            ⚙️ Settings
+          </li>
+
+          <li
+            onClick={logout}
+            style={{ color: "#ef4444", marginTop: "auto", cursor: "pointer" }}
+          >
+            🚪 Logout
           </li>
         </ul>
       </div>
@@ -460,27 +389,28 @@ useEffect(() => {
 
     {/* SEARCH BAR */}
     <div className="search-container">
-  <input
-    type="text"
-    placeholder="Search jobs, companies, skills..."
-    value={searchTerm}
-     onChange={(e) => {
-      const value = e.target.value;
-
-      setSearchTerm(value);
-
-      const results = jobsData.filter(
-        (job) =>
-          job.role.toLowerCase().includes(value.toLowerCase()) ||
-          job.company.toLowerCase().includes(value.toLowerCase()) ||
-          job.location.toLowerCase().includes(value.toLowerCase())
-      );
-
-      setSearchResults(results);
-    }}
-    className="search-input"
-  />
-</div>
+      <input
+        type="text"
+        placeholder="Search jobs, companies, skills..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        onKeyDown={async (e) => {
+          if (e.key === "Enter" && searchTerm.trim()) {
+            setSearching(true);
+            try {
+              const res = await fetch(`${API_BASE}/api/search/jobs?query=${encodeURIComponent(searchTerm)}`, {
+                headers: { Authorization: `Bearer ${token}` },
+              });
+              const data = res.ok ? await res.json() : [];
+              setSearchResults(Array.isArray(data) ? data : (data.items || data.jobs || []));
+            } catch (_) { setSearchResults([]); }
+            setSearching(false);
+          }
+          if (e.key === "Escape") { setSearchTerm(""); setSearchResults([]); }
+        }}
+        className="search-input"
+      />
+    </div>
 
     {/* PROFILE SECTION */}
     <div className="profile-section">
@@ -517,12 +447,7 @@ useEffect(() => {
 
     </div>
 
-    <button
-  className="logout-btn"
-  onClick={handleLogout}
->
-  Logout
-</button>
+    <button className="logout-btn" onClick={logout}>Logout</button>
 
   </div>
 
@@ -530,39 +455,27 @@ useEffect(() => {
   {searchTerm.trim() !== "" ? (
 
     <div className="search-results">
-
-      <h3>🔍 Search Results</h3>
+      <h3>🔍 Search Results {searching && "..."}</h3>
+      <p style={{fontSize:"12px",color:"#64748b"}}>Press Enter to search</p>
 
       {searchResults.length > 0 ? (
-
         searchResults.map((job, index) => (
-
-          <div
-            key={index}
-            className="job-card"
-          >
+          <div key={job.id || index} className="job-card">
             <div>
-              <h4>{job.role}</h4>
-              <p>{job.company}</p>
-              <p>{job.location}</p>
+              <h4>{job.title}</h4>
+              {job.company && <p>{job.company}</p>}
+              {job.location && <p>{job.location}</p>}
             </div>
-
             <div className="job-right">
-              <span>{job.match}</span>
-              <button>Apply</button>
+              <button onClick={() => setPage("browse")}>View Jobs</button>
             </div>
           </div>
-
         ))
-
       ) : (
-
         <div className="card">
-          <p>No matching jobs found.</p>
+          <p>Press Enter to search jobs.</p>
         </div>
-
       )}
-
     </div>
 
   ) : (
