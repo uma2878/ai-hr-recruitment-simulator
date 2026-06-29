@@ -50,7 +50,7 @@ function JobRecommendations() {
               <div className="job-top">
                 <h3>{job.title}</h3>
                 <span className="match-score">
-                  {Math.round((job.score || 0) * 100)}% Match
+                  {Math.round(job.score || 0)}% Match
                 </span>
               </div>
 
