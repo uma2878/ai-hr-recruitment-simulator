@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { API_BASE } from "../config/api";
 function ResumeUpload({ goBack }) {
-  console.log("ResumeUpload component rendered");
   const [file, setFile] = useState(null);
 const [preview, setPreview] = useState("");
 const [resume, setResume] = useState(null);

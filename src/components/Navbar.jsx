@@ -1,9 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { API_BASE } from "../config/api";
+import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   const [search, setSearch] = useState("");
 
@@ -22,11 +24,10 @@ function Navbar() {
         });
       } catch (_) {}
     }
-    localStorage.removeItem("token");
     localStorage.removeItem("role");
     localStorage.removeItem("userName");
     localStorage.removeItem("userEmail");
-    navigate("/");
+    logout();
   };
 
   return (
