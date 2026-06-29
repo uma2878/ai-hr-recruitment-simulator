@@ -50,7 +50,7 @@ function Sidebar() {
 
               borderLeft:
                 location.pathname === item.path
-                  ? "8px solid navy blue"
+                  ? "8px solid #1e3a8a"
                   : "8px solid transparent",
 
               fontWeight:

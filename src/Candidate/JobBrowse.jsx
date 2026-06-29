@@ -22,7 +22,7 @@ function JobBrowse({ onApply }) {
       if (res.status === 401) { localStorage.removeItem("token"); window.location.href = "/"; return; }
       if (!res.ok) throw new Error("Failed to load");
       const data = await res.json();
-      setJobs(Array.isArray(data) ? data : (data.jobs || []));
+      setJobs(Array.isArray(data) ? data : (data.items || data.jobs || []));
     } catch (e) {
       setError("Could not load jobs.");
     }

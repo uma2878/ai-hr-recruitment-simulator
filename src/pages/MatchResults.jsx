@@ -36,10 +36,10 @@ const fetchMatches = async () => {
 
   const filteredMatches = matches.filter(
   (candidate) =>
-    candidate.candidate_name
+    (candidate.candidate_name || "")
       .toLowerCase()
       .includes(searchTerm.toLowerCase()) ||
-    candidate.job_title
+    (candidate.job_title || "")
       .toLowerCase()
       .includes(searchTerm.toLowerCase())
 );

@@ -401,7 +401,7 @@ useEffect(() => {
                 headers: { Authorization: `Bearer ${token}` },
               });
               const data = res.ok ? await res.json() : [];
-              setSearchResults(Array.isArray(data) ? data : (data.jobs || []));
+              setSearchResults(Array.isArray(data) ? data : (data.items || data.jobs || []));
             } catch (_) { setSearchResults([]); }
             setSearching(false);
           }

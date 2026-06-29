@@ -25,7 +25,6 @@ function ViewResumes() {
       const data = await response.json();
 
       console.log("Resumes:", data);
-      console.log(data.items[0]);
 
       setResumes(data.items || data);
     } catch (error) {

@@ -28,7 +28,7 @@ function AIRecommendations() {
 
       console.log("AI Recommendations:", data);
 
-      setRecommendations(data);
+      setRecommendations(Array.isArray(data) ? data : (data.items || data.candidates || []));
     } catch (error) {
       console.error(error);
     }
