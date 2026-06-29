@@ -7,52 +7,93 @@ function Analytics() {
   const [skills, setSkills] = useState([]);
   const [status, setStatus] = useState([]);
   const [matchScores, setMatchScores] = useState([]);
-  const [performance, setPerformance] = useState({});
+  const [performance, setPerformance] = useState({
+    average: 0,
+    distribution: [],
+  });
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-  const fetchAnalytics = async () => {
-    try {
-      const token = localStorage.getItem("token");
+    const fetchAnalytics = async () => {
+      try {
+        const token = localStorage.getItem("token");
 
-      const headers = {
-        Authorization: `Bearer ${token}`,
-      };
+        const headers = {
+          Authorization: `Bearer ${token}`,
+        };
 
-      const [
-        skillsRes,
-        statusRes,
-        matchRes,
-        performanceRes,
-      ] = await Promise.all([
-        fetch(`${API_BASE}/api/analytics/skills`, { headers }),
-        fetch(`${API_BASE}/api/analytics/status`, { headers }),
-        fetch(`${API_BASE}/api/analytics/match-scores`, { headers }),
-        fetch(`${API_BASE}/api/analytics/interview-performance`, {
-          headers,
-        }),
-      ]);
+        const responses = await Promise.all([
+          fetch(`${API_BASE}/api/analytics/skills`, { headers }),
+          fetch(`${API_BASE}/api/analytics/status`, { headers }),
+          fetch(`${API_BASE}/api/analytics/match-scores`, { headers }),
+          fetch(`${API_BASE}/api/analytics/interview-performance`, {
+            headers,
+          }),
+        ]);
 
-      const skillsData = await skillsRes.json();
-      const statusData = await statusRes.json();
-      const matchData = await matchRes.json();
-      const performanceData = await performanceRes.json();
+        responses.forEach((res) => {
+          if (!res.ok) {
+            throw new Error(`API Error: ${res.status}`);
+          }
+        });
 
-      console.log("Skills:", skillsData);
-      console.log("Status:", statusData);
-      console.log("Match Scores:", matchData);
-      console.log("Performance:", performanceData);
+        const [
+          skillsData,
+          statusData,
+          matchData,
+          performanceData,
+        ] = await Promise.all(responses.map((res) => res.json()));
 
-      setSkills(skillsData);
-      setStatus(statusData);
-      setMatchScores(matchData);
-      setPerformance(performanceData);
-    } catch (err) {
-      console.error(err);
-    }
-  };
+        console.log("Skills:", skillsData);
+        console.log("Status:", statusData);
+        console.log("Match Scores:", matchData);
+        console.log("Performance:", performanceData);
 
-  fetchAnalytics();
-}, []);
+        setSkills(skillsData);
+        setStatus(statusData);
+        setMatchScores(matchData);
+        setPerformance(performanceData);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load analytics.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalytics();
+  }, []);
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div style={{ display: "flex" }}>
+          <Sidebar />
+          <div style={{ padding: "30px", flex: 1 }}>
+            <h2>Loading Analytics...</h2>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <Navbar />
+        <div style={{ display: "flex" }}>
+          <Sidebar />
+          <div style={{ padding: "30px", flex: 1 }}>
+            <h2>{error}</h2>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <Navbar />
@@ -62,131 +103,145 @@ function Analytics() {
 
         <div style={{ padding: "30px", flex: 1 }}>
           <h1>📈 Analytics Dashboard</h1>
-          <p>
-            Recruitment performance and hiring insights.
-          </p>
+          <p>Recruitment performance and hiring insights.</p>
 
           {/* Summary Cards */}
+
           <div
             style={{
               display: "flex",
               gap: "20px",
               marginTop: "20px",
               marginBottom: "30px",
+              flexWrap: "wrap",
             }}
           >
             <div style={cardStyle}>
-  <h3>Total Skills</h3>
-  <p>{skills.length}</p>
-</div>
+              <h3>Total Skills</h3>
+              <p>{skills.length}</p>
+            </div>
 
-<div style={cardStyle}>
-  <h3>Status Types</h3>
-  <p>{status.length}</p>
-</div>
+            <div style={cardStyle}>
+              <h3>Status Types</h3>
+              <p>{status.length}</p>
+            </div>
 
-<div style={cardStyle}>
-  <h3>Score Buckets</h3>
-  <p>{matchScores.length}</p>
-</div>
+            <div style={cardStyle}>
+              <h3>Score Buckets</h3>
+              <p>{matchScores.length}</p>
+            </div>
 
-<div style={cardStyle}>
-  <h3>Interview Performance</h3>
-  <p>{performance.average ?? "N/A"}</p>
-</div>
+            <div style={cardStyle}>
+              <h3>Average Interview Score</h3>
+              <p>{performance.average}</p>
+            </div>
           </div>
 
-          {/* Statistics Table */}
-          <h2>📊 Recruitment Statistics</h2>
+          {/* Skills */}
 
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              backgroundColor: "white",
-              marginBottom: "30px",
-            }}
-          >
+          <h2>🛠 Skills Analytics</h2>
+
+          <table style={tableStyle}>
             <thead>
-              <tr
-                style={{
-                  backgroundColor: "#1e293b",
-                  color: "white",
-                }}
-              >
-                <th style={tableHeader}>Metric</th>
-                <th style={tableHeader}>Value</th>
+              <tr style={headerRow}>
+                <th style={tableHeader}>Skill</th>
+                <th style={tableHeader}>Count</th>
               </tr>
             </thead>
 
             <tbody>
-  {skills.map((skill, index) => (
-    <tr key={index}>
-      <td style={tableCell}>{skill.label}</td>
-      <td style={tableCell}>{skill.count}</td>
-    </tr>
-  ))}
-</tbody>
+              {skills.length === 0 ? (
+                <tr>
+                  <td style={tableCell} colSpan="2">
+                    No skills data available.
+                  </td>
+                </tr>
+              ) : (
+                skills.map((skill, index) => (
+                  <tr key={index}>
+                    <td style={tableCell}>{skill.label}</td>
+                    <td style={tableCell}>{skill.count}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
           </table>
-          <h2>Interview Distribution</h2>
 
-<table
-  style={{
-    width: "100%",
-    borderCollapse: "collapse",
-    backgroundColor: "white",
-    marginTop: "20px",
-  }}
->
-  <thead>
-    <tr style={{ backgroundColor: "#1e293b", color: "white" }}>
-      <th style={tableHeader}>Category</th>
-      <th style={tableHeader}>Count</th>
-    </tr>
-  </thead>
+          {/* Status */}
 
-  <tbody>
-    {performance.distribution &&
-      Object.entries(performance.distribution).map(
-        ([key, value]) => (
-          <tr key={key}>
-            <td style={tableCell}>{key}</td>
-            <td style={tableCell}>{value}</td>
-          </tr>
-        )
-      )}
-  </tbody>
-</table>
+          <h2>📊 Application Status</h2>
 
-          {/* Performance Section */}
-          <h2>🚀 Performance Metrics</h2>
+          <table style={tableStyle}>
+            <thead>
+              <tr style={headerRow}>
+                <th style={tableHeader}>Status</th>
+                <th style={tableHeader}>Count</th>
+              </tr>
+            </thead>
 
-          <div style={{ marginTop: "20px" }}>
-            <p><strong>Resume Match Rate</strong></p>
-            <div style={progressBackground}>
-              <div style={{ ...progressFill, width: "85%" }}>
-                85%
-              </div>
-            </div>
+            <tbody>
+              {status.map((item, index) => (
+                <tr key={index}>
+                  <td style={tableCell}>{item.label}</td>
+                  <td style={tableCell}>{item.count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
-            <p style={{ marginTop: "20px" }}>
-              <strong>Interview Pass Rate</strong>
-            </p>
-            <div style={progressBackground}>
-              <div style={{ ...progressFill, width: "70%" }}>
-                70%
-              </div>
-            </div>
+          {/* Match Scores */}
 
-            <p style={{ marginTop: "20px" }}>
-              <strong>Selection Rate</strong>
-            </p>
-            <div style={progressBackground}>
-              <div style={{ ...progressFill, width: "60%" }}>
-                60%
-              </div>
-            </div>
-          </div>
+          <h2>🎯 Resume Match Scores</h2>
+
+          <table style={tableStyle}>
+            <thead>
+              <tr style={headerRow}>
+                <th style={tableHeader}>Score Bucket</th>
+                <th style={tableHeader}>Count</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {matchScores.map((item) => (
+                <tr key={item.bucket}>
+                  <td style={tableCell}>{item.bucket}</td>
+                  <td style={tableCell}>{item.count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* Interview Performance */}
+
+          <h2>🎤 Interview Performance</h2>
+
+          <p
+            style={{
+              fontSize: "18px",
+              fontWeight: "bold",
+              marginBottom: "15px",
+            }}
+          >
+            Average Score: {performance.average}
+          </p>
+
+          <table style={tableStyle}>
+            <thead>
+              <tr style={headerRow}>
+                <th style={tableHeader}>Score Range</th>
+                <th style={tableHeader}>Candidates</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {performance.distribution.map((item) => (
+                <tr key={item.bucket}>
+                  <td style={tableCell}>{item.bucket}</td>
+                  <td style={tableCell}>{item.count}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </>
@@ -194,12 +249,25 @@ function Analytics() {
 }
 
 const cardStyle = {
-  width: "180px",
-  padding: "15px",
+  width: "200px",
+  padding: "18px",
   borderRadius: "10px",
   backgroundColor: "white",
   border: "1px solid #ddd",
   textAlign: "center",
+  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+};
+
+const tableStyle = {
+  width: "100%",
+  borderCollapse: "collapse",
+  backgroundColor: "white",
+  marginBottom: "35px",
+};
+
+const headerRow = {
+  backgroundColor: "#1e293b",
+  color: "white",
 };
 
 const tableHeader = {
@@ -210,20 +278,6 @@ const tableHeader = {
 const tableCell = {
   padding: "12px",
   border: "1px solid #ddd",
-};
-
-const progressBackground = {
-  width: "100%",
-  backgroundColor: "#e5e7eb",
-  borderRadius: "10px",
-  overflow: "hidden",
-};
-
-const progressFill = {
-  backgroundColor: "#2563eb",
-  color: "white",
-  textAlign: "center",
-  padding: "8px",
 };
 
 export default Analytics;
