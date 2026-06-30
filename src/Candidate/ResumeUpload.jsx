@@ -32,9 +32,6 @@ const fetchResume = async () => {
 
     const data = await response.json();
 
-    console.log("Status:", response.status);
-    console.log("Resume:", data);
-
     if (!response.ok) {
       setResume(null);
       setLoading(false);
@@ -103,7 +100,7 @@ useEffect(() => {
     const token = localStorage.getItem("token");
 
     const response = await fetch(
-      `${API_BASE}/api/resumes/${resume.id}`,
+      `${API_BASE}/api/resume/${resume.id}`,
       {
         method: "DELETE",
         headers: {

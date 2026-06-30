@@ -24,7 +24,7 @@ function AdminProfile() {
         const userId = payload.sub;
 
         const response = await fetch(
-          `${API_BASE}/api/profile/${userId}`,
+          `${API_BASE}/api/admin/profile`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -33,10 +33,10 @@ function AdminProfile() {
         const data = response.ok ? await response.json() : {};
 
         setAdmin({
-          id: userId,
-          name: data.full_name || localStorage.getItem("userName") || "",
-          email: localStorage.getItem("userEmail") || "",
-          role: localStorage.getItem("role") || "",
+          id: data.id || userId,
+          name: data.name || localStorage.getItem("userName") || "",
+          email: data.email || localStorage.getItem("userEmail") || "",
+          role: data.role || localStorage.getItem("role") || "",
           created_at: data.created_at || "",
         });
       } catch (err) {

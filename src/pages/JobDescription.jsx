@@ -28,9 +28,7 @@ function JobDescription() {
 
       const data = await response.json();
 
-      console.log("Jobs:", data);
-
-      setJobs(data.items || data);
+      setJobs(Array.isArray(data) ? data : (data.items || []));
     } catch (error) {
       console.error("Error fetching jobs:", error);
     }

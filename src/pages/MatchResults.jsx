@@ -16,7 +16,7 @@ const fetchMatches = async () => {
     const token = localStorage.getItem("token");
 
     const response = await fetch(
-      `${API_BASE}/api/match`,
+      `${API_BASE}/api/match-results`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
